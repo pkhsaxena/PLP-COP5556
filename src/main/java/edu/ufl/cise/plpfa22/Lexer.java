@@ -1,11 +1,20 @@
 package edu.ufl.cise.plpfa22;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import edu.ufl.cise.plpfa22.IToken.Kind;
+
 public class Lexer implements ILexer {
+	private List<IToken> tokenList = new ArrayList<>();
 
 	/*
 	 * HAS_QUOTE -> A single quote was found. Could be the " token.
-	 * HAS_BACKSLASH -> An open quote is followed by a \ somewhere (Goes to
-	 * HAS_STRINGLIT state next (after a b|t|n|f|r|"|') based on testcases)
+	 * HAS_BACKSLASH -> An open quote is followed by a \ somewhere (Goes to HAS_STRINGLIT state next (after a b|t|n|f|r|"|') based on testcases)
 	 * HAS_STRINGLIT -> An open quote is followed by something not(\ | ")
 	 * STRING_LIT -> HAS_STRINGLIT is followed by a "
 	 * IN_IDENT -> Checks for Boolean and for keyword
@@ -14,13 +23,28 @@ public class Lexer implements ILexer {
 	 */
 	private enum State {
 		START, IN_IDENT, HAS_ZERO, IN_NUM, HAS_QUOTE, HAS_BACKSLASH, HAS_STRINGLIT, STRING_LIT, HAS_FOWRWARDSHLASH,
-		HAS_COMMENT, HAS_COMMENT_CR, COMMENT, HAS_COLON, HAS_LESS_THAN, HAS_GREATER_THAN
+		HAS_COMMENT, HAS_COMMENT_CR, COMMENT, HAS_COLON, HAS_LESS_THAN, HAS_GREATER_THAN, WS
 	};
+
+	private Map<String, Kind> reservedWords = Stream.of(new Object[][] {
+		{"TRUE", Kind.BOOLEAN_LIT},
+		{"FALSE", Kind.BOOLEAN_LIT},
+		{"CONST", Kind.KW_CONST},
+		{"VAR", Kind.KW_VAR},
+		{"PROCEDURE", Kind.KW_PROCEDURE},
+		{"CALL", Kind.KW_CALL},
+		{"BEGIN", Kind.KW_BEGIN},
+		{"END", Kind.KW_END},
+		{"IF", Kind.KW_IF},
+		{"THEN", Kind.KW_THEN},
+		{"WHILE", Kind.KW_WHILE},
+		{"DO", Kind.KW_DO}		
+	}).collect(Collectors.toMap(data -> (String) data[0], data -> (Kind) data[1]));
 
 	private int lineNumber, columnNumber, currentCharacterIndex;
 
 	public Lexer(String input) {
-		// TODO Auto-generated constructor stub
+		StringBuilder tokenBuilder = new StringBuilder();
 		final int inputLength = input.length();
 		State currentState = State.START;
 		char currentCharacter;
@@ -30,6 +54,7 @@ public class Lexer implements ILexer {
 
 		while (currentCharacterIndex < inputLength) {
 			currentCharacter = input.charAt(currentCharacterIndex);
+			tokenBuilder.append(currentCharacter);
 			if (currentCharacter == '\n') {
 				// TODO: Check if this is to be moved elsewhere
 				lineNumber += 1;
@@ -45,8 +70,9 @@ public class Lexer implements ILexer {
 
 			}
 			switch (currentState) {
-				case START: {
+				case START -> {
 					if (Set.of(' ', '\t', '\r', '\n').contains(currentCharacter)) {
+						currentState = State.WS;
 						continue;
 					}
 					if (Set.of('.', ',', ';', '(', ')', '+', '-', '*', '/', '%', '?', '!', '=', '#')
@@ -54,6 +80,35 @@ public class Lexer implements ILexer {
 						// TODO: Return token/add token to list.
 					}
 				}
+				case WS -> {//whitespace separates tokens, all token start checks should be here
+					if (currentCharacter == '"') {
+						currentState = State.HAS_STRINGLIT;
+					}
+				}
+				case HAS_STRINGLIT -> {
+					if(!Set.of('\\','"').contains(currentCharacter)) {
+						continue;
+					}
+					else if(currentCharacter == '\\') {
+						currentState = State.HAS_BACKSLASH;
+						continue;
+					}
+					else if(currentCharacter == '"') {
+						currentState = State.STRING_LIT;
+						//TODO: add token to list
+					}
+				}
+				case HAS_BACKSLASH -> {
+					//valid escape sequence check
+					if(Set.of('b','t','n','f','r','"',"'",'\\').contains(currentCharacter)) {
+						//if valid escape sequence, continue to search for string literal end
+						currentState = State.HAS_STRINGLIT;
+						continue;
+					} else {
+						//TODO: error,store location and token
+					}
+				}
+				
 			}
 
 		}

@@ -173,7 +173,10 @@ public class Lexer implements ILexer {
 
 					// TODO: Handle errors
 					else {
-						currentCharacterIndex += 1;
+						currentColumnNumber = columnNumber;
+						tokenList.add(new Token(Kind.ERROR, lineNumber, currentColumnNumber,
+								Character.toString(currentCharacter)));
+						break;
 					}
 				}
 

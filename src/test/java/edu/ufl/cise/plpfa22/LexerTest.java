@@ -236,4 +236,26 @@ class LexerTest {
 		checkToken(lexer.next(), Kind.MINUS, 3, 1);
 		checkToken(lexer.next(), Kind.PLUS, 5, 1);
 	}
+	@Test
+	public void test_GT_LT_AS_Tokens() throws LexicalException {
+		String input = """
+				>=
+				>
+				< <<
+				<=
+				:=<>>=""";
+		show("test_GT_LT_AS_Tokens");
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.GE, 1, 1);
+		checkToken(lexer.next(), Kind.GT, 2, 1);
+		checkToken(lexer.next(), Kind.LT, 3, 1);
+		checkToken(lexer.next(), Kind.LT, 3, 3);
+		checkToken(lexer.next(), Kind.LT, 3, 4);
+		checkToken(lexer.next(), Kind.LE, 4, 1);
+		checkToken(lexer.next(), Kind.ASSIGN, 5, 1);
+		checkToken(lexer.next(), Kind.LT, 5, 3);
+		checkToken(lexer.next(), Kind.GT, 5, 4);
+		checkToken(lexer.next(), Kind.GE, 5, 5);
+	}
 }

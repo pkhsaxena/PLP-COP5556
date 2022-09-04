@@ -56,7 +56,6 @@ public class Lexer implements ILexer {
 
 		while (currentCharacterIndex < inputLength) {
 			currentCharacter = input.charAt(currentCharacterIndex);
-
 			if (currentCharacter == '\n' || currentCharacter == '\r') {
 				// TODO: Check if this is to be moved elsewhere
 				if (currentCharacter == '\n') {
@@ -120,7 +119,6 @@ public class Lexer implements ILexer {
 						// TODO: error,store location and token
 					}
 				}
-
 			}
 
 		}

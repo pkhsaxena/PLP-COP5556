@@ -60,12 +60,14 @@ public class Lexer implements ILexer {
 	private int tokenIndex;
 
 	public Lexer(String input) {
+		final int inputLength;
 		int lineNumber, columnNumber, currentColumnNumber, currentCharacterIndex;
 		StringBuilder tokenBuilder = new StringBuilder();
-		final int inputLength = input.length();
 		State currentState = State.START;
 		char currentCharacter;
+
 		input += Character.toString(0);
+		inputLength = input.length();
 		lineNumber = columnNumber = 1;
 		currentCharacterIndex = currentColumnNumber = 0;
 		tokenIndex = 0;
@@ -146,6 +148,14 @@ public class Lexer implements ILexer {
 					// Check for open quote
 					if (currentCharacter == '"') {
 						currentState = State.HAS_STRINGLIT;
+					}
+
+					// Check EOF
+					if (currentCharacter == 0) {
+						currentColumnNumber = columnNumber;
+						tokenList.add(new Token(Kind.EOF, lineNumber, currentColumnNumber,
+								Character.toString(currentCharacter)));
+						currentCharacterIndex += 1;
 					}
 				}
 

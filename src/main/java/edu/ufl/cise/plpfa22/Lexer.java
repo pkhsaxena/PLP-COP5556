@@ -17,14 +17,14 @@ public class Lexer implements ILexer {
 	 * HAS_BACKSLASH -> An open quote is followed by a \ somewhere (Goes to
 	 * HAS_STRINGLIT state next (after a b|t|n|f|r|"|') based on testcases)
 	 * HAS_STRINGLIT -> An open quote is followed by something not(\ | ")
-	 * STRING_LIT -> HAS_STRINGLIT is followed by a "
+	 * state. Just return the value.
 	 * IN_IDENT -> Checks for Boolean and for keyword
 	 * 
 	 * TODO: Unsure when to return " token.
 	 */
 	private enum State {
-		START, IN_IDENT, HAS_ZERO, IN_NUM, HAS_QUOTE, HAS_BACKSLASH, HAS_STRINGLIT, STRING_LIT, HAS_FOWRWARDSHLASH,
-		HAS_COMMENT, HAS_COMMENT_CR, COMMENT, HAS_COLON, HAS_LESS_THAN, HAS_GREATER_THAN, WS
+		START, IN_IDENT, HAS_ZERO, IN_NUM, HAS_QUOTE, HAS_BACKSLASH, HAS_STRINGLIT, HAS_FOWRWARDSHLASH,
+		HAS_COMMENT, HAS_COMMENT_CR, COMMENT, HAS_COLON, HAS_LESS_THAN, HAS_GREATER_THAN
 	};
 
 	private Map<String, Kind> reservedWords = Stream.of(new Object[][] {
@@ -49,6 +49,7 @@ public class Lexer implements ILexer {
 		final int inputLength = input.length();
 		State currentState = State.START;
 		char currentCharacter;
+		StringBuilder tokenBuilder = new StringBuilder();
 		input += Character.toString(0);
 		lineNumber = columnNumber = 1;
 		currentCharacterIndex = 0;
@@ -78,11 +79,12 @@ public class Lexer implements ILexer {
 			}
 			switch (currentState) {
 				case START -> {
+					// Check for white space
 					if (Set.of(' ', '\t', '\r', '\n').contains(currentCharacter)) {
 						currentState = State.WS;
 						continue;
 					}
-					// Che
+					// Check single char tokens
 					if (Set.of('.', ',', ';', '(', ')', '+', '-', '*', '/', '%', '?', '!', '=', '#')
 							.contains(currentCharacter)) {
 						// TODO: Return token/add token to list.
@@ -92,6 +94,11 @@ public class Lexer implements ILexer {
 					}
 				}
 
+				case WS -> {// whitespace separates tokens, all token start checks should be here
+					if (currentCharacter == '"') {
+						currentState = State.HAS_STRINGLIT;
+					}
+				}
 				case HAS_STRINGLIT -> {
 					if (!Set.of('\\', '"').contains(currentCharacter)) {
 						continue;

@@ -49,7 +49,6 @@ public class Lexer implements ILexer {
 		final int inputLength = input.length();
 		State currentState = State.START;
 		char currentCharacter;
-		StringBuilder tokenBuilder = new StringBuilder();
 		input += Character.toString(0);
 		lineNumber = columnNumber = 1;
 		currentCharacterIndex = 0;
@@ -77,6 +76,7 @@ public class Lexer implements ILexer {
 				}
 			}
 			switch (currentState) {
+
 				case START -> {
 					// Check for white space
 					if (Set.of(' ', '\t', '\r', '\n').contains(currentCharacter)) {
@@ -93,11 +93,6 @@ public class Lexer implements ILexer {
 					}
 				}
 
-				case WS -> {// whitespace separates tokens, all token start checks should be here
-					if (currentCharacter == '"') {
-						currentState = State.HAS_STRINGLIT;
-					}
-				}
 				case HAS_STRINGLIT -> {
 					if (!Set.of('\\', '"').contains(currentCharacter)) {
 						continue;
@@ -109,6 +104,7 @@ public class Lexer implements ILexer {
 						// TODO: add token to list
 					}
 				}
+
 				case HAS_BACKSLASH -> {
 					// valid escape sequence check
 					if (Set.of('b', 't', 'n', 'f', 'r', '"', "'", '\\').contains(currentCharacter)) {

@@ -30,9 +30,9 @@ public class Token implements IToken {
 		boolValue = null;
 		strValue = null;
 		if (tokenKind == Kind.NUM_LIT) {
-			intValue = (int) rawText;
+			intValue = Integer.parseInt(rawText);
 		} else if (tokenKind == Kind.BOOLEAN_LIT) {
-			boolValue = (boolean) rawText;
+			boolValue = Boolean.parseBoolean(rawText);
 		} else if (tokenKind == Kind.STRING_LIT) {
 			// TODO: Implement based on what raw string is.
 			strValue = null;

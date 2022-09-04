@@ -57,16 +57,17 @@ public class Lexer implements ILexer {
 			{ "#", Kind.NEQ }
 	}).collect(Collectors.toMap(data -> (String) data[0], data -> (Kind) data[1]));
 
-	private int lineNumber, columnNumber, currentCharacterIndex, tokenIndex;
+	private int tokenIndex;
 
 	public Lexer(String input) {
+		int lineNumber, columnNumber, currentColumnNumber, currentCharacterIndex;
 		StringBuilder tokenBuilder = new StringBuilder();
 		final int inputLength = input.length();
 		State currentState = State.START;
 		char currentCharacter;
 		input += Character.toString(0);
 		lineNumber = columnNumber = 1;
-		currentCharacterIndex = 0;
+		currentCharacterIndex = currentColumnNumber = 0;
 		tokenIndex = 0;
 
 		while (currentCharacterIndex < inputLength) {
@@ -117,6 +118,7 @@ public class Lexer implements ILexer {
 
 					// Check for COLON
 					if (currentCharacter == ':') {
+						currentColumnNumber = columnNumber;
 						currentState = State.HAS_COLON;
 						columnNumber += 1;
 						currentCharacterIndex += 1;
@@ -125,6 +127,7 @@ public class Lexer implements ILexer {
 
 					// Check for >
 					if (currentCharacter == '>') {
+						currentColumnNumber = columnNumber;
 						currentState = State.HAS_GREATER_THAN;
 						columnNumber += 1;
 						currentCharacterIndex += 1;
@@ -133,6 +136,7 @@ public class Lexer implements ILexer {
 
 					// Check for <
 					if (currentCharacter == '<') {
+						currentColumnNumber = columnNumber;
 						currentState = State.HAS_LESS_THAN;
 						columnNumber += 1;
 						currentCharacterIndex += 1;
@@ -147,36 +151,36 @@ public class Lexer implements ILexer {
 
 				case HAS_COLON -> {
 					if (currentCharacter == '=') {
-						tokenList.add(new Token(Kind.ASSIGN, lineNumber, columnNumber, ":="));
+						tokenList.add(new Token(Kind.ASSIGN, lineNumber, currentColumnNumber, ":="));
 						columnNumber += 1;
 						currentCharacterIndex += 1;
 						currentState = State.START;
 					} else {
-						tokenList.add(new Token(Kind.ERROR, lineNumber, columnNumber, (":" + currentCharacter)));
+						tokenList.add(new Token(Kind.ERROR, lineNumber, currentColumnNumber, (":" + currentCharacter)));
 						break;
 					}
 				}
 
 				case HAS_GREATER_THAN -> {
 					if (currentCharacter == '=') {
-						tokenList.add(new Token(Kind.GE, lineNumber, columnNumber, ">="));
+						tokenList.add(new Token(Kind.GE, lineNumber, currentColumnNumber, ">="));
 						columnNumber += 1;
 						currentCharacterIndex += 1;
 						currentState = State.START;
 					} else {
-						tokenList.add(new Token(Kind.GT, lineNumber, columnNumber, ">"));
+						tokenList.add(new Token(Kind.GT, lineNumber, currentColumnNumber, ">"));
 						currentState = State.START;
 					}
 				}
 
 				case HAS_LESS_THAN -> {
 					if (currentCharacter == '=') {
-						tokenList.add(new Token(Kind.LE, lineNumber, columnNumber, "<="));
+						tokenList.add(new Token(Kind.LE, lineNumber, currentColumnNumber, "<="));
 						columnNumber += 1;
 						currentCharacterIndex += 1;
 						currentState = State.START;
 					} else {
-						tokenList.add(new Token(Kind.LT, lineNumber, columnNumber, "<"));
+						tokenList.add(new Token(Kind.LT, lineNumber, currentColumnNumber, "<"));
 						currentState = State.START;
 					}
 				}

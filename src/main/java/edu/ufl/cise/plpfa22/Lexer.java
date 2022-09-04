@@ -65,6 +65,7 @@ public class Lexer implements ILexer {
 		StringBuilder tokenBuilder = new StringBuilder();
 		State currentState = State.START;
 		char currentCharacter;
+		String tokenString;
 
 		input += Character.toString(0);
 		inputLength = input.length();
@@ -145,8 +146,20 @@ public class Lexer implements ILexer {
 						continue;
 					}
 
+					// check for identifier
+					if ((currentCharacter >= 'a' && currentCharacter <= 'z')
+							|| (currentCharacter >= 'A' && currentCharacter <= 'Z') || (currentCharacter == '_')
+							|| (currentCharacter >= '$')) {
+						currentColumnNumber = columnNumber;
+						currentState = State.IN_IDENT;
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						tokenBuilder.append(currentCharacter);
+						continue;
+					}
+
 					// Check for open quote
-					if (currentCharacter == '"') {
+					if (false && currentCharacter == '"') { // TODO: Remove false
 						currentState = State.HAS_STRINGLIT;
 					}
 
@@ -155,6 +168,11 @@ public class Lexer implements ILexer {
 						currentColumnNumber = columnNumber;
 						tokenList.add(new Token(Kind.EOF, lineNumber, currentColumnNumber,
 								Character.toString(currentCharacter)));
+						currentCharacterIndex += 1;
+					}
+
+					// TODO: Handle errors
+					else {
 						currentCharacterIndex += 1;
 					}
 				}
@@ -168,6 +186,26 @@ public class Lexer implements ILexer {
 					} else {
 						tokenList.add(new Token(Kind.ERROR, lineNumber, currentColumnNumber, (":" + currentCharacter)));
 						break;
+					}
+				}
+
+				case IN_IDENT -> {
+					if ((currentCharacter >= 'a' && currentCharacter <= 'z')
+							|| (currentCharacter >= 'A' && currentCharacter <= 'Z') || (currentCharacter == '_')
+							|| (currentCharacter >= '$') || (currentCharacter >= '0' && currentCharacter <= '9')) {
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						tokenBuilder.append(currentCharacter);
+					} else {
+						tokenString = tokenBuilder.toString();
+						if (reservedWords.containsKey(tokenString)) {
+							tokenList.add(new Token(reservedWords.get(tokenString), lineNumber, currentColumnNumber,
+									tokenString));
+						} else {
+							tokenList.add(new Token(Kind.IDENT, lineNumber, currentColumnNumber, tokenString));
+						}
+						tokenBuilder.setLength(0);
+						currentState = State.START;
 					}
 				}
 

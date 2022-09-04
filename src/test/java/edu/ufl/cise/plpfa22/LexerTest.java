@@ -76,6 +76,7 @@ class LexerTest {
 	void testEmpty() throws LexicalException {
 		String input = "";
 		show(input);
+		show("testEmpty");
 		ILexer lexer = getLexer(input);
 		show(lexer);
 		checkEOF(lexer.next());
@@ -257,5 +258,28 @@ class LexerTest {
 		checkToken(lexer.next(), Kind.LT, 5, 3);
 		checkToken(lexer.next(), Kind.GT, 5, 4);
 		checkToken(lexer.next(), Kind.GE, 5, 5);
+	}
+	@Test
+	public void test_IDENT_KW_Tokens() throws LexicalException {
+		String input = """
+				ABCD1234
+				$12bc TRUE DO FALSE WHILE
+				_TRUE $FALSE help
+				true KEEPME VAR""";
+		show("test_IDENT_KW_Tokens");
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.IDENT, 1, 1);
+		checkToken(lexer.next(), Kind.IDENT, 2, 1);
+		checkToken(lexer.next(), Kind.BOOLEAN_LIT, 2, 7);
+		checkToken(lexer.next(), Kind.KW_DO, 2, 12);
+		checkToken(lexer.next(), Kind.BOOLEAN_LIT, 2, 15);
+		checkToken(lexer.next(), Kind.KW_WHILE, 2, 21);
+		checkToken(lexer.next(), Kind.IDENT, 3, 1);
+		checkToken(lexer.next(), Kind.IDENT, 3, 7);
+		checkToken(lexer.next(), Kind.IDENT, 3, 14);
+		checkToken(lexer.next(), Kind.IDENT, 4, 1);
+		checkToken(lexer.next(), Kind.IDENT, 4, 6);
+		checkToken(lexer.next(), Kind.KW_VAR, 4, 13);
 	}
 }

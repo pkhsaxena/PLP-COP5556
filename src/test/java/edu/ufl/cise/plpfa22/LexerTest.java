@@ -206,8 +206,8 @@ class LexerTest {
 	public void testSingleTokens() throws LexicalException {
 		String input = """
 				.+ *?! %
-				-
-				""";
+				-""";
+		show("testSingleTokens");
 		show(input);
 		ILexer lexer = getLexer(input);
 		checkToken(lexer.next(), Kind.DOT, 1, 1);
@@ -217,5 +217,23 @@ class LexerTest {
 		checkToken(lexer.next(), Kind.BANG, 1, 6);
 		checkToken(lexer.next(), Kind.MOD, 1, 8);
 		checkToken(lexer.next(), Kind.MINUS, 2, 1);
+	}
+	@Test
+	public void testWhiteSpaceWithSingleTokens() throws LexicalException {
+		String input = """
+				.+ *?! %\n
+				-\r\n
+				+""";
+		show("testWhiteSpaceWithSingleTokens");
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.DOT, 1, 1);
+		checkToken(lexer.next(), Kind.PLUS, 1, 2);
+		checkToken(lexer.next(), Kind.TIMES, 1, 4);
+		checkToken(lexer.next(), Kind.QUESTION, 1, 5);
+		checkToken(lexer.next(), Kind.BANG, 1, 6);
+		checkToken(lexer.next(), Kind.MOD, 1, 8);
+		checkToken(lexer.next(), Kind.MINUS, 3, 1);
+		checkToken(lexer.next(), Kind.PLUS, 5, 1);
 	}
 }

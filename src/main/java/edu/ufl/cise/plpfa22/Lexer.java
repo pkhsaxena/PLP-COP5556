@@ -80,7 +80,6 @@ public class Lexer implements ILexer {
 				case START -> {
 					// Check for white space
 					if (Set.of(' ', '\t', '\r', '\n').contains(currentCharacter)) {
-						currentState = State.WS;
 						continue;
 					}
 					// Check single char tokens
@@ -95,13 +94,20 @@ public class Lexer implements ILexer {
 
 				case HAS_STRINGLIT -> {
 					if (!Set.of('\\', '"').contains(currentCharacter)) {
-						continue;
+						tokenBuilder.append(currentCharacter);
+						currentCharacterIndex++;
 					} else if (currentCharacter == '\\') {
+						//escape sequence start
+						//TODO: test escape sequences, they maybe be read as a single char instead of two characters
+						tokenBuilder.append(currentCharacter);
 						currentState = State.HAS_BACKSLASH;
-						continue;
+						currentCharacterIndex++;
 					} else if (currentCharacter == '"') {
-						currentState = State.STRING_LIT;
-						// TODO: add token to list
+						//string literal end
+						currentState = State.START;
+						currentCharacterIndex++;
+						tokenList.add(new Token(Kind.STRING_LIT, lineNumber, columnNumber, tokenBuilder.toString()));
+						tokenBuilder = new StringBuilder(); // reset token builder
 					}
 				}
 
@@ -109,10 +115,13 @@ public class Lexer implements ILexer {
 					// valid escape sequence check
 					if (Set.of('b', 't', 'n', 'f', 'r', '"', "'", '\\').contains(currentCharacter)) {
 						// if valid escape sequence, continue to search for string literal end
+						currentCharacterIndex++;
 						currentState = State.HAS_STRINGLIT;
 						continue;
 					} else {
-						// TODO: error,store location and token
+						//error! cannot parse input further, store token formed till here
+						tokenList.add(new Token(Kind.ERROR, lineNumber, columnNumber, tokenBuilder.toString()));
+						break;
 					}
 				}
 			}

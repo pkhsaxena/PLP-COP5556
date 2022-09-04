@@ -14,7 +14,8 @@ public class Lexer implements ILexer {
 
 	/*
 	 * HAS_QUOTE -> A single quote was found. Could be the " token.
-	 * HAS_BACKSLASH -> An open quote is followed by a \ somewhere (Goes to HAS_STRINGLIT state next (after a b|t|n|f|r|"|') based on testcases)
+	 * HAS_BACKSLASH -> An open quote is followed by a \ somewhere (Goes to
+	 * HAS_STRINGLIT state next (after a b|t|n|f|r|"|') based on testcases)
 	 * HAS_STRINGLIT -> An open quote is followed by something not(\ | ")
 	 * STRING_LIT -> HAS_STRINGLIT is followed by a "
 	 * IN_IDENT -> Checks for Boolean and for keyword
@@ -27,18 +28,18 @@ public class Lexer implements ILexer {
 	};
 
 	private Map<String, Kind> reservedWords = Stream.of(new Object[][] {
-		{"TRUE", Kind.BOOLEAN_LIT},
-		{"FALSE", Kind.BOOLEAN_LIT},
-		{"CONST", Kind.KW_CONST},
-		{"VAR", Kind.KW_VAR},
-		{"PROCEDURE", Kind.KW_PROCEDURE},
-		{"CALL", Kind.KW_CALL},
-		{"BEGIN", Kind.KW_BEGIN},
-		{"END", Kind.KW_END},
-		{"IF", Kind.KW_IF},
-		{"THEN", Kind.KW_THEN},
-		{"WHILE", Kind.KW_WHILE},
-		{"DO", Kind.KW_DO}		
+			{ "TRUE", Kind.BOOLEAN_LIT },
+			{ "FALSE", Kind.BOOLEAN_LIT },
+			{ "CONST", Kind.KW_CONST },
+			{ "VAR", Kind.KW_VAR },
+			{ "PROCEDURE", Kind.KW_PROCEDURE },
+			{ "CALL", Kind.KW_CALL },
+			{ "BEGIN", Kind.KW_BEGIN },
+			{ "END", Kind.KW_END },
+			{ "IF", Kind.KW_IF },
+			{ "THEN", Kind.KW_THEN },
+			{ "WHILE", Kind.KW_WHILE },
+			{ "DO", Kind.KW_DO }
 	}).collect(Collectors.toMap(data -> (String) data[0], data -> (Kind) data[1]));
 
 	private int lineNumber, columnNumber, currentCharacterIndex;
@@ -49,16 +50,23 @@ public class Lexer implements ILexer {
 		State currentState = State.START;
 		char currentCharacter;
 		input += Character.toString(0);
-		lineNumber = 1;
-		columnNumber = currentCharacterIndex = 0;
+		lineNumber = columnNumber = 1;
+		currentCharacterIndex = 0;
 
 		while (currentCharacterIndex < inputLength) {
 			currentCharacter = input.charAt(currentCharacterIndex);
-			tokenBuilder.append(currentCharacter);
-			if (currentCharacter == '\n') {
+
+			if (currentCharacter == '\n' || currentCharacter == '\r') {
 				// TODO: Check if this is to be moved elsewhere
-				lineNumber += 1;
-				columnNumber = 0;
+				if (currentCharacter == '\n') {
+					lineNumber += 1;
+					columnNumber = 1;
+				}
+				if (currentCharacter == '\r') {
+					lineNumber += 1;
+					columnNumber = 1;
+					currentCharacterIndex += 1; // Skip the \n
+				}
 			}
 			if (currentCharacter == ' ' || currentCharacter == '\t') {
 				// TODO: Check if this is to be moved elsewhere
@@ -67,7 +75,6 @@ public class Lexer implements ILexer {
 				if (currentCharacter == '\t') {
 					// TODO: Do we have tabs in input?
 				}
-
 			}
 			switch (currentState) {
 				case START -> {
@@ -75,40 +82,38 @@ public class Lexer implements ILexer {
 						currentState = State.WS;
 						continue;
 					}
+					// Che
 					if (Set.of('.', ',', ';', '(', ')', '+', '-', '*', '/', '%', '?', '!', '=', '#')
 							.contains(currentCharacter)) {
 						// TODO: Return token/add token to list.
 					}
-				}
-				case WS -> {//whitespace separates tokens, all token start checks should be here
 					if (currentCharacter == '"') {
 						currentState = State.HAS_STRINGLIT;
 					}
 				}
+
 				case HAS_STRINGLIT -> {
-					if(!Set.of('\\','"').contains(currentCharacter)) {
+					if (!Set.of('\\', '"').contains(currentCharacter)) {
 						continue;
-					}
-					else if(currentCharacter == '\\') {
+					} else if (currentCharacter == '\\') {
 						currentState = State.HAS_BACKSLASH;
 						continue;
-					}
-					else if(currentCharacter == '"') {
+					} else if (currentCharacter == '"') {
 						currentState = State.STRING_LIT;
-						//TODO: add token to list
+						// TODO: add token to list
 					}
 				}
 				case HAS_BACKSLASH -> {
-					//valid escape sequence check
-					if(Set.of('b','t','n','f','r','"',"'",'\\').contains(currentCharacter)) {
-						//if valid escape sequence, continue to search for string literal end
+					// valid escape sequence check
+					if (Set.of('b', 't', 'n', 'f', 'r', '"', "'", '\\').contains(currentCharacter)) {
+						// if valid escape sequence, continue to search for string literal end
 						currentState = State.HAS_STRINGLIT;
 						continue;
 					} else {
-						//TODO: error,store location and token
+						// TODO: error,store location and token
 					}
 				}
-				
+
 			}
 
 		}

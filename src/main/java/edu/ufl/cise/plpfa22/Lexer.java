@@ -1,5 +1,7 @@
 package edu.ufl.cise.plpfa22;
 
+import java.util.Set;
+
 public class Lexer implements ILexer {
 
 	/*
@@ -25,15 +27,22 @@ public class Lexer implements ILexer {
 		State currentState = State.START;
 		char currentCharacter;
 		input += Character.toString(0);
-		lineNumber = 1;
-		columnNumber = currentCharacterIndex = 0;
+		lineNumber = columnNumber = 1;
+		currentCharacterIndex = 0;
 
 		while (currentCharacterIndex < inputLength) {
 			currentCharacter = input.charAt(currentCharacterIndex);
-			if (currentCharacter == '\n') {
+			if (currentCharacter == '\n' || currentCharacter == '\r') {
 				// TODO: Check if this is to be moved elsewhere
-				lineNumber += 1;
-				columnNumber = 0;
+				if (currentCharacter == '\n') {
+					lineNumber += 1;
+					columnNumber = 1;
+				}
+				if (currentCharacter == '\r') {
+					lineNumber += 1;
+					columnNumber = 1;
+					currentCharacterIndex += 1; // Skip the \n
+				}
 			}
 			if (currentCharacter == ' ' || currentCharacter == '\t') {
 				// TODO: Check if this is to be moved elsewhere
@@ -42,17 +51,19 @@ public class Lexer implements ILexer {
 				if (currentCharacter == '\t') {
 					// TODO: Do we have tabs in input?
 				}
-
 			}
 			switch (currentState) {
 				case START: {
+					// Check for white space
 					if (Set.of(' ', '\t', '\r', '\n').contains(currentCharacter)) {
 						continue;
 					}
+					// Che
 					if (Set.of('.', ',', ';', '(', ')', '+', '-', '*', '/', '%', '?', '!', '=', '#')
 							.contains(currentCharacter)) {
 						// TODO: Return token/add token to list.
 					}
+
 				}
 			}
 

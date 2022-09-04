@@ -71,44 +71,113 @@ public class Lexer implements ILexer {
 
 		while (currentCharacterIndex < inputLength) {
 			currentCharacter = input.charAt(currentCharacterIndex);
-			if (currentCharacter == '\n' || currentCharacter == '\r') {
-				// TODO: Check if this is to be moved elsewhere
-				if (currentCharacter == '\n') {
-					lineNumber += 1;
-					columnNumber = 1;
-				}
-				if (currentCharacter == '\r') {
-					lineNumber += 1;
-					columnNumber = 1;
-					currentCharacterIndex += 1; // Skip the \n
-				}
-			}
-			if (currentCharacter == ' ' || currentCharacter == '\t') {
-				// TODO: Check if this is to be moved elsewhere
-				if (currentCharacter == ' ')
-					columnNumber += 1;
-				if (currentCharacter == '\t') {
-					// TODO: Do we have tabs in input?
-				}
-			}
+
+			// Start statemachine
 			switch (currentState) {
 
 				case START -> {
-					// Check for white space
+
+					// Check for whitespace/newline/cr
 					if (Set.of(' ', '\t', '\r', '\n').contains(currentCharacter)) {
+						// Check for new line.
+						if (currentCharacter == '\n' || currentCharacter == '\r') {
+							if (currentCharacter == '\n') {
+								lineNumber += 1;
+								columnNumber = 1;
+							}
+							if (currentCharacter == '\r') {
+								lineNumber += 1;
+								columnNumber = 1;
+								currentCharacterIndex += 1; // Skip the \n
+							}
+						}
+
+						// Check for white space
+						if (currentCharacter == ' ' || currentCharacter == '\t') {
+							if (currentCharacter == ' ')
+								columnNumber += 1;
+							if (currentCharacter == '\t') {
+								// TODO: Do we have tabs in input?
+							}
+						}
 						currentCharacterIndex += 1;
 						continue;
 					}
+
 					// Check single char tokens
 					if (Set.of('.', ',', ';', '(', ')', '+', '-', '*', '%', '?', '!', '=', '#')
 							.contains(currentCharacter)) {
-						tokenList.add(new Token(singleToken.get(Character.toString(currentCharacter)), lineNumber, columnNumber,
+						tokenList.add(new Token(singleToken.get(Character.toString(currentCharacter)), lineNumber,
+								columnNumber,
 								Character.toString(currentCharacter)));
 						columnNumber += 1;
 						currentCharacterIndex += 1;
+						continue;
 					}
+
+					// Check for COLON
+					if (currentCharacter == ':') {
+						currentState = State.HAS_COLON;
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						continue;
+					}
+
+					// Check for >
+					if (currentCharacter == '>') {
+						currentState = State.HAS_GREATER_THAN;
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						continue;
+					}
+
+					// Check for <
+					if (currentCharacter == '<') {
+						currentState = State.HAS_LESS_THAN;
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						continue;
+					}
+
+					// Check for open quote
 					if (currentCharacter == '"') {
 						currentState = State.HAS_STRINGLIT;
+					}
+				}
+
+				case HAS_COLON -> {
+					if (currentCharacter == '=') {
+						tokenList.add(new Token(Kind.ASSIGN, lineNumber, columnNumber, ":="));
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						currentState = State.START;
+					} else {
+						tokenList.add(new Token(Kind.ERROR, lineNumber, columnNumber, (":" + currentCharacter)));
+						break;
+					}
+				}
+
+				case HAS_GREATER_THAN -> {
+					if (currentCharacter == '=') {
+						tokenList.add(new Token(Kind.GE, lineNumber, columnNumber, ">="));
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						currentState = State.START;
+					} else {
+						tokenList.add(new Token(Kind.GT, lineNumber, columnNumber, ">"));
+						currentState = State.START;
+					}
+				}
+
+				case HAS_LESS_THAN -> {
+					if (currentCharacter == '=') {
+						tokenList.add(new Token(Kind.LE, lineNumber, columnNumber, "<="));
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						currentState = State.START;
+					} else {
+						tokenList.add(new Token(Kind.LT, lineNumber, columnNumber, "<"));
+						currentState = State.START;
 					}
 				}
 

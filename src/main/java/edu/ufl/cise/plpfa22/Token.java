@@ -38,9 +38,8 @@ public class Token implements IToken {
 			// TODO: Implement based on what raw string is.
 			intValue = Integer.MIN_VALUE;
 			boolValue = Boolean.FALSE;
-			strValue = ""; //TODO: Fix actual string value
-		}
-		else {
+			strValue = ""; // TODO: Fix actual string value
+		} else {
 			intValue = Integer.MIN_VALUE;
 			boolValue = Boolean.FALSE;
 			strValue = "";

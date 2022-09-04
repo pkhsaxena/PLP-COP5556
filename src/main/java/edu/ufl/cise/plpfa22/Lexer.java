@@ -20,7 +20,6 @@ public class Lexer implements ILexer {
 	 * state. Just return the value.
 	 * IN_IDENT -> Checks for Boolean and for keyword
 	 * 
-	 * TODO: Unsure when to return " token.
 	 */
 	private enum State {
 		START, IN_IDENT, HAS_ZERO, IN_NUM, HAS_QUOTE, HAS_BACKSLASH, HAS_STRINGLIT, HAS_FOWRWARDSHLASH,
@@ -42,7 +41,23 @@ public class Lexer implements ILexer {
 			{ "DO", Kind.KW_DO }
 	}).collect(Collectors.toMap(data -> (String) data[0], data -> (Kind) data[1]));
 
-	private int lineNumber, columnNumber, currentCharacterIndex;
+	private Map<String, Kind> singleToken = Stream.of(new Object[][] {
+			{ ".", Kind.DOT },
+			{ ",", Kind.COMMA },
+			{ ";", Kind.SEMI },
+			{ "(", Kind.LPAREN },
+			{ ")", Kind.RPAREN },
+			{ "+", Kind.PLUS },
+			{ "-", Kind.MINUS },
+			{ "*", Kind.TIMES },
+			{ "%", Kind.MOD },
+			{ "?", Kind.QUESTION },
+			{ "!", Kind.BANG },
+			{ "=", Kind.EQ },
+			{ "#", Kind.NEQ }
+	}).collect(Collectors.toMap(data -> (String) data[0], data -> (Kind) data[1]));
+
+	private int lineNumber, columnNumber, currentCharacterIndex, tokenIndex;
 
 	public Lexer(String input) {
 		StringBuilder tokenBuilder = new StringBuilder();
@@ -52,6 +67,7 @@ public class Lexer implements ILexer {
 		input += Character.toString(0);
 		lineNumber = columnNumber = 1;
 		currentCharacterIndex = 0;
+		tokenIndex = 0;
 
 		while (currentCharacterIndex < inputLength) {
 			currentCharacter = input.charAt(currentCharacterIndex);
@@ -80,13 +96,16 @@ public class Lexer implements ILexer {
 				case START -> {
 					// Check for white space
 					if (Set.of(' ', '\t', '\r', '\n').contains(currentCharacter)) {
-						currentState = State.WS;
+						currentCharacterIndex += 1;
 						continue;
 					}
 					// Check single char tokens
-					if (Set.of('.', ',', ';', '(', ')', '+', '-', '*', '/', '%', '?', '!', '=', '#')
+					if (Set.of('.', ',', ';', '(', ')', '+', '-', '*', '%', '?', '!', '=', '#')
 							.contains(currentCharacter)) {
-						// TODO: Return token/add token to list.
+						tokenList.add(new Token(singleToken.get(Character.toString(currentCharacter)), lineNumber, columnNumber,
+								Character.toString(currentCharacter)));
+						columnNumber += 1;
+						currentCharacterIndex += 1;
 					}
 					if (currentCharacter == '"') {
 						currentState = State.HAS_STRINGLIT;
@@ -100,7 +119,6 @@ public class Lexer implements ILexer {
 						currentState = State.HAS_BACKSLASH;
 						continue;
 					} else if (currentCharacter == '"') {
-						currentState = State.STRING_LIT;
 						// TODO: add token to list
 					}
 				}
@@ -116,21 +134,33 @@ public class Lexer implements ILexer {
 					}
 				}
 			}
-
 		}
-
 	}
 
 	@Override
 	public IToken next() throws LexicalException {
-		// TODO Auto-generated method stub
+		if (tokenIndex < tokenList.size()) {
+			IToken rToken = tokenList.get(tokenIndex);
+			tokenIndex += 1;
+			if (rToken.getKind() != Kind.ERROR) {
+				return rToken;
+			} else {
+				// TODO: Throw error
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public IToken peek() throws LexicalException {
-		// TODO Auto-generated method stub
+		if (tokenIndex < tokenList.size()) {
+			IToken rToken = tokenList.get(tokenIndex);
+			if (rToken.getKind() != Kind.ERROR) {
+				return rToken;
+			} else {
+				// TODO: Throw error
+			}
+		}
 		return null;
 	}
-
 }

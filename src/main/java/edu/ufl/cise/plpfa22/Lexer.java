@@ -149,12 +149,21 @@ public class Lexer implements ILexer {
 					// check for identifier
 					if ((currentCharacter >= 'a' && currentCharacter <= 'z')
 							|| (currentCharacter >= 'A' && currentCharacter <= 'Z') || (currentCharacter == '_')
-							|| (currentCharacter >= '$')) {
+							|| (currentCharacter == '$')) {
 						currentColumnNumber = columnNumber;
 						currentState = State.IN_IDENT;
 						columnNumber += 1;
 						currentCharacterIndex += 1;
 						tokenBuilder.append(currentCharacter);
+						continue;
+					}
+
+					// Check for forward slash
+					if (currentCharacter == '/') {
+						currentColumnNumber = columnNumber;
+						currentState = State.HAS_FOWRWARDSHLASH;
+						columnNumber += 1;
+						currentCharacterIndex += 1;
 						continue;
 					}
 
@@ -169,14 +178,15 @@ public class Lexer implements ILexer {
 						tokenList.add(new Token(Kind.EOF, lineNumber, currentColumnNumber,
 								Character.toString(currentCharacter)));
 						currentCharacterIndex += 1;
+						continue;
 					}
 
-					// TODO: Handle errors
 					else {
 						currentColumnNumber = columnNumber;
 						tokenList.add(new Token(Kind.ERROR, lineNumber, currentColumnNumber,
 								Character.toString(currentCharacter)));
-						break;
+						currentCharacterIndex += 1; // TODO: Break, once all states are written and Exception is thrown.
+													// This is added so all tests run.
 					}
 				}
 
@@ -232,6 +242,25 @@ public class Lexer implements ILexer {
 						currentState = State.START;
 					} else {
 						tokenList.add(new Token(Kind.LT, lineNumber, currentColumnNumber, "<"));
+						currentState = State.START;
+					}
+				}
+
+				case HAS_FOWRWARDSHLASH -> {
+					if (currentCharacter == '/') {
+						currentState = State.HAS_COMMENT;
+						currentCharacterIndex += 1;
+					} else {
+						tokenList.add(new Token(Kind.DIV, lineNumber, currentColumnNumber, "/"));
+						currentState = State.START;
+					}
+				}
+
+				case HAS_COMMENT -> {
+					if (currentCharacter != '\n' && currentCharacter != '\r' && currentCharacter != 0) {
+						currentCharacterIndex += 1;
+						continue;
+					} else {
 						currentState = State.START;
 					}
 				}

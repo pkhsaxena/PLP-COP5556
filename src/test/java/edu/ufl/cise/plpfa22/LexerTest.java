@@ -219,6 +219,7 @@ class LexerTest {
 		checkToken(lexer.next(), Kind.MOD, 1, 8);
 		checkToken(lexer.next(), Kind.MINUS, 2, 1);
 	}
+
 	@Test
 	public void testWhiteSpaceWithSingleTokens() throws LexicalException {
 		String input = """
@@ -237,6 +238,7 @@ class LexerTest {
 		checkToken(lexer.next(), Kind.MINUS, 3, 1);
 		checkToken(lexer.next(), Kind.PLUS, 5, 1);
 	}
+
 	@Test
 	public void test_GT_LT_AS_Tokens() throws LexicalException {
 		String input = """
@@ -259,6 +261,7 @@ class LexerTest {
 		checkToken(lexer.next(), Kind.GT, 5, 4);
 		checkToken(lexer.next(), Kind.GE, 5, 5);
 	}
+
 	@Test
 	public void test_IDENT_KW_Tokens() throws LexicalException {
 		String input = """
@@ -281,5 +284,47 @@ class LexerTest {
 		checkToken(lexer.next(), Kind.IDENT, 4, 1);
 		checkToken(lexer.next(), Kind.IDENT, 4, 6);
 		checkToken(lexer.next(), Kind.KW_VAR, 4, 13);
+	}
+
+	@Test
+	public void test_Comments_and_DIV_Tokens() throws LexicalException {
+		String input = """
+				A23 / TRUE //Hello world this all ***
+				Can HeAr ? //The end""";
+		show("test_Comments_and_DIV_Tokens");
+		show(input);
+		ILexer lexer = getLexer(input);
+
+		IToken t = lexer.next();
+		//show(t.getKind());
+		//show(t.getSourceLocation());
+		checkToken(t, Kind.IDENT, 1, 1);
+
+		t = lexer.next();
+		//show(t.getKind());
+		//show(t.getSourceLocation());
+		checkToken(t, Kind.DIV, 1, 5);
+
+		t = lexer.next();
+
+		t = lexer.next();
+		//show(t.getKind());
+		//show(t.getSourceLocation());
+		checkToken(t, Kind.IDENT, 2, 1);
+
+		t = lexer.next();
+		//show(t.getKind());
+		//show(t.getSourceLocation());
+		checkToken(t, Kind.IDENT, 2, 5);
+
+		t = lexer.next();
+		//show(t.getKind());
+		//show(t.getSourceLocation());
+		checkToken(t, Kind.QUESTION, 2, 10);
+
+		t = lexer.next();
+		//show(t.getKind());
+		//show(t.getSourceLocation());
+		checkEOF(t);
 	}
 }

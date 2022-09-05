@@ -96,13 +96,17 @@ public class Lexer implements ILexer {
 					tokenBuilder.append(currentCharacter);
 					if (!Set.of('\\', '"').contains(currentCharacter)) {
 						currentCharacterIndex++;
+						columnNumber++;
 					} else if (currentCharacter == '\\') {
 						//escape sequence start
 						currentCharacterIndex++;
+						columnNumber++;
 						currentState = State.HAS_BACKSLASH;
 					} else if (currentCharacter == '"') {
 						//string literal end
 						currentCharacterIndex++;
+						columnNumber++;
+						//TODO: for tokens with multiple characters, do we store start or end column number??
 						currentState = State.START;
 						tokenList.add(new Token(Kind.STRING_LIT, lineNumber, columnNumber, tokenBuilder.toString()));
 						tokenBuilder = new StringBuilder(); // reset token builder
@@ -118,6 +122,7 @@ public class Lexer implements ILexer {
 					if (Set.of('b', 't', 'n', 'f', 'r', '"', "'", '\\').contains(currentCharacter)) {
 						// if valid escape sequence, continue to search for string literal end
 						currentCharacterIndex++;
+						columnNumber++;
 						currentState = State.HAS_STRINGLIT;
 					} else {
 						//error! cannot parse input further, store token formed till here

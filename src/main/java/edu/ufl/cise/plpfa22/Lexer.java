@@ -93,21 +93,23 @@ public class Lexer implements ILexer {
 				}
 
 				case HAS_STRINGLIT -> {
+					tokenBuilder.append(currentCharacter);
 					if (!Set.of('\\', '"').contains(currentCharacter)) {
-						tokenBuilder.append(currentCharacter);
 						currentCharacterIndex++;
 					} else if (currentCharacter == '\\') {
 						//escape sequence start
-						//TODO: test escape sequences, they maybe be read as a single char instead of two characters
-						tokenBuilder.append(currentCharacter);
-						currentState = State.HAS_BACKSLASH;
 						currentCharacterIndex++;
+						currentState = State.HAS_BACKSLASH;
 					} else if (currentCharacter == '"') {
 						//string literal end
-						currentState = State.START;
 						currentCharacterIndex++;
+						currentState = State.START;
 						tokenList.add(new Token(Kind.STRING_LIT, lineNumber, columnNumber, tokenBuilder.toString()));
 						tokenBuilder = new StringBuilder(); // reset token builder
+					} else {
+						//error! cannot parse input further, store token formed till here
+						tokenList.add(new Token(Kind.ERROR, lineNumber, columnNumber, tokenBuilder.toString()));
+						break;
 					}
 				}
 
@@ -117,7 +119,6 @@ public class Lexer implements ILexer {
 						// if valid escape sequence, continue to search for string literal end
 						currentCharacterIndex++;
 						currentState = State.HAS_STRINGLIT;
-						continue;
 					} else {
 						//error! cannot parse input further, store token formed till here
 						tokenList.add(new Token(Kind.ERROR, lineNumber, columnNumber, tokenBuilder.toString()));

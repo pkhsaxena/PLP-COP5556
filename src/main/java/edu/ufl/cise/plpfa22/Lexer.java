@@ -20,7 +20,6 @@ public class Lexer implements ILexer {
 	 * state. Just return the value.
 	 * IN_IDENT -> Checks for Boolean and for keyword
 	 * 
-	 * TODO: Unsure when to return " token.
 	 */
 	private enum State {
 		START, IN_IDENT, HAS_ZERO, IN_NUM, HAS_QUOTE, HAS_BACKSLASH, HAS_STRINGLIT, HAS_FOWRWARDSHLASH,
@@ -42,53 +41,227 @@ public class Lexer implements ILexer {
 			{ "DO", Kind.KW_DO }
 	}).collect(Collectors.toMap(data -> (String) data[0], data -> (Kind) data[1]));
 
-	private int lineNumber, columnNumber, currentCharacterIndex;
+	private Map<String, Kind> singleToken = Stream.of(new Object[][] {
+			{ ".", Kind.DOT },
+			{ ",", Kind.COMMA },
+			{ ";", Kind.SEMI },
+			{ "(", Kind.LPAREN },
+			{ ")", Kind.RPAREN },
+			{ "+", Kind.PLUS },
+			{ "-", Kind.MINUS },
+			{ "*", Kind.TIMES },
+			{ "%", Kind.MOD },
+			{ "?", Kind.QUESTION },
+			{ "!", Kind.BANG },
+			{ "=", Kind.EQ },
+			{ "#", Kind.NEQ }
+	}).collect(Collectors.toMap(data -> (String) data[0], data -> (Kind) data[1]));
+
+	private int tokenIndex;
 
 	public Lexer(String input) {
+		final int inputLength;
+		int lineNumber, columnNumber, currentColumnNumber, currentCharacterIndex;
 		StringBuilder tokenBuilder = new StringBuilder();
-		final int inputLength = input.length();
 		State currentState = State.START;
 		char currentCharacter;
+		String tokenString;
+
 		input += Character.toString(0);
+		inputLength = input.length();
 		lineNumber = columnNumber = 1;
-		currentCharacterIndex = 0;
+		currentCharacterIndex = currentColumnNumber = 0;
+		tokenIndex = 0;
 
 		while (currentCharacterIndex < inputLength) {
 			currentCharacter = input.charAt(currentCharacterIndex);
-			if (currentCharacter == '\n' || currentCharacter == '\r') {
-				// TODO: Check if this is to be moved elsewhere
-				if (currentCharacter == '\n') {
-					lineNumber += 1;
-					columnNumber = 1;
-				}
-				if (currentCharacter == '\r') {
-					lineNumber += 1;
-					columnNumber = 1;
-					currentCharacterIndex += 1; // Skip the \n
-				}
-			}
-			if (currentCharacter == ' ' || currentCharacter == '\t') {
-				// TODO: Check if this is to be moved elsewhere
-				if (currentCharacter == ' ')
-					columnNumber += 1;
-				if (currentCharacter == '\t') {
-					// TODO: Do we have tabs in input?
-				}
-			}
+
+			// Start statemachine
 			switch (currentState) {
 
 				case START -> {
-					// Check for white space
+
+					// Check for whitespace/newline/cr
 					if (Set.of(' ', '\t', '\r', '\n').contains(currentCharacter)) {
+						// Check for new line.
+						if (currentCharacter == '\n' || currentCharacter == '\r') {
+							if (currentCharacter == '\n') {
+								lineNumber += 1;
+								columnNumber = 1;
+							}
+							if (currentCharacter == '\r') {
+								lineNumber += 1;
+								columnNumber = 1;
+								currentCharacterIndex += 1; // Skip the \n
+							}
+						}
+
+						// Check for white space
+						if (currentCharacter == ' ' || currentCharacter == '\t') {
+							if (currentCharacter == ' ')
+								columnNumber += 1;
+							if (currentCharacter == '\t') {
+								// TODO: Do we have tabs in input?
+							}
+						}
+						currentCharacterIndex += 1;
 						continue;
 					}
+
 					// Check single char tokens
-					if (Set.of('.', ',', ';', '(', ')', '+', '-', '*', '/', '%', '?', '!', '=', '#')
+					if (Set.of('.', ',', ';', '(', ')', '+', '-', '*', '%', '?', '!', '=', '#')
 							.contains(currentCharacter)) {
-						// TODO: Return token/add token to list.
+						tokenList.add(new Token(singleToken.get(Character.toString(currentCharacter)), lineNumber,
+								columnNumber,
+								Character.toString(currentCharacter)));
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						continue;
 					}
-					if (currentCharacter == '"') {
+
+					// Check for COLON
+					if (currentCharacter == ':') {
+						currentColumnNumber = columnNumber;
+						currentState = State.HAS_COLON;
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						continue;
+					}
+
+					// Check for >
+					if (currentCharacter == '>') {
+						currentColumnNumber = columnNumber;
+						currentState = State.HAS_GREATER_THAN;
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						continue;
+					}
+
+					// Check for <
+					if (currentCharacter == '<') {
+						currentColumnNumber = columnNumber;
+						currentState = State.HAS_LESS_THAN;
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						continue;
+					}
+
+					// check for identifier
+					if ((currentCharacter >= 'a' && currentCharacter <= 'z')
+							|| (currentCharacter >= 'A' && currentCharacter <= 'Z') || (currentCharacter == '_')
+							|| (currentCharacter == '$')) {
+						currentColumnNumber = columnNumber;
+						currentState = State.IN_IDENT;
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						tokenBuilder.append(currentCharacter);
+						continue;
+					}
+
+					// Check for forward slash
+					if (currentCharacter == '/') {
+						currentColumnNumber = columnNumber;
+						currentState = State.HAS_FOWRWARDSHLASH;
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						continue;
+					}
+
+					// Check for open quote
+					if (currentCharacter == '"') { // TODO: Remove false
 						currentState = State.HAS_STRINGLIT;
+					}
+
+					// Check EOF
+					if (currentCharacter == 0) {
+						currentColumnNumber = columnNumber;
+						tokenList.add(new Token(Kind.EOF, lineNumber, currentColumnNumber,
+								Character.toString(currentCharacter)));
+						currentCharacterIndex += 1;
+						continue;
+					}
+
+					else {
+						currentColumnNumber = columnNumber;
+						tokenList.add(new Token(Kind.ERROR, lineNumber, currentColumnNumber,
+								Character.toString(currentCharacter)));
+						currentCharacterIndex += 1; // TODO: Break, once all states are written and Exception is thrown.
+													// This is added so all tests run.
+					}
+				}
+
+				case HAS_COLON -> {
+					if (currentCharacter == '=') {
+						tokenList.add(new Token(Kind.ASSIGN, lineNumber, currentColumnNumber, ":="));
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						currentState = State.START;
+					} else {
+						tokenList.add(new Token(Kind.ERROR, lineNumber, currentColumnNumber, (":" + currentCharacter)));
+						break;
+					}
+				}
+
+				case IN_IDENT -> {
+					if ((currentCharacter >= 'a' && currentCharacter <= 'z')
+							|| (currentCharacter >= 'A' && currentCharacter <= 'Z') || (currentCharacter == '_')
+							|| (currentCharacter >= '$') || (currentCharacter >= '0' && currentCharacter <= '9')) {
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						tokenBuilder.append(currentCharacter);
+					} else {
+						tokenString = tokenBuilder.toString();
+						if (reservedWords.containsKey(tokenString)) {
+							tokenList.add(new Token(reservedWords.get(tokenString), lineNumber, currentColumnNumber,
+									tokenString));
+						} else {
+							tokenList.add(new Token(Kind.IDENT, lineNumber, currentColumnNumber, tokenString));
+						}
+						tokenBuilder.setLength(0);
+						currentState = State.START;
+					}
+				}
+
+				case HAS_GREATER_THAN -> {
+					if (currentCharacter == '=') {
+						tokenList.add(new Token(Kind.GE, lineNumber, currentColumnNumber, ">="));
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						currentState = State.START;
+					} else {
+						tokenList.add(new Token(Kind.GT, lineNumber, currentColumnNumber, ">"));
+						currentState = State.START;
+					}
+				}
+
+				case HAS_LESS_THAN -> {
+					if (currentCharacter == '=') {
+						tokenList.add(new Token(Kind.LE, lineNumber, currentColumnNumber, "<="));
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+						currentState = State.START;
+					} else {
+						tokenList.add(new Token(Kind.LT, lineNumber, currentColumnNumber, "<"));
+						currentState = State.START;
+					}
+				}
+
+				case HAS_FOWRWARDSHLASH -> {
+					if (currentCharacter == '/') {
+						currentState = State.HAS_COMMENT;
+						currentCharacterIndex += 1;
+					} else {
+						tokenList.add(new Token(Kind.DIV, lineNumber, currentColumnNumber, "/"));
+						currentState = State.START;
+					}
+				}
+
+				case HAS_COMMENT -> {
+					if (currentCharacter != '\n' && currentCharacter != '\r' && currentCharacter != 0) {
+						currentCharacterIndex += 1;
+						continue;
+					} else {
+						currentState = State.START;
 					}
 				}
 
@@ -131,21 +304,33 @@ public class Lexer implements ILexer {
 					}
 				}
 			}
-
 		}
-
 	}
 
 	@Override
 	public IToken next() throws LexicalException {
-		// TODO Auto-generated method stub
+		if (tokenIndex < tokenList.size()) {
+			IToken rToken = tokenList.get(tokenIndex);
+			tokenIndex += 1;
+			if (rToken.getKind() != Kind.ERROR) {
+				return rToken;
+			} else {
+				// TODO: Throw error
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public IToken peek() throws LexicalException {
-		// TODO Auto-generated method stub
+		if (tokenIndex < tokenList.size()) {
+			IToken rToken = tokenList.get(tokenIndex);
+			if (rToken.getKind() != Kind.ERROR) {
+				return rToken;
+			} else {
+				// TODO: Throw error
+			}
+		}
 		return null;
 	}
-
 }

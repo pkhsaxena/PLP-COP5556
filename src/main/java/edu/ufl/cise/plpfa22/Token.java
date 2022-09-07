@@ -26,16 +26,23 @@ public class Token implements IToken {
 		this.lineNumber = lineNumber;
 		this.columnNumber = columnNumber;
 		this.rawText = rawText;
-		intValue = null;
-		boolValue = null;
-		strValue = null;
 		if (tokenKind == Kind.NUM_LIT) {
 			intValue = Integer.parseInt(rawText);
+			boolValue = Boolean.FALSE;
+			strValue = "";
 		} else if (tokenKind == Kind.BOOLEAN_LIT) {
+			intValue = Integer.MIN_VALUE;
 			boolValue = Boolean.parseBoolean(rawText);
+			strValue = "";
 		} else if (tokenKind == Kind.STRING_LIT) {
 			// TODO: Implement based on what raw string is.
-			strValue = null;
+			intValue = Integer.MIN_VALUE;
+			boolValue = Boolean.FALSE;
+			strValue = ""; // TODO: Fix actual string value
+		} else {
+			intValue = Integer.MIN_VALUE;
+			boolValue = Boolean.FALSE;
+			strValue = "";
 		}
 	}
 
@@ -48,7 +55,7 @@ public class Token implements IToken {
 	@Override
 	public char[] getText() {
 		// Return raw text
-		return rawText;
+		return rawText.toCharArray();
 	}
 
 	@Override
@@ -63,7 +70,7 @@ public class Token implements IToken {
 		if (tokenKind == Kind.NUM_LIT) {
 			return intValue;
 		}
-		return null; // TODO: Do we need to throw an error?
+		return Integer.MIN_VALUE; // TODO: Do we need to throw an error?
 	}
 
 	@Override
@@ -72,7 +79,7 @@ public class Token implements IToken {
 		if (tokenKind == Kind.BOOLEAN_LIT) {
 			return boolValue;
 		}
-		return null; // TODO: Do we need to throw an error?
+		return Boolean.FALSE; // TODO: Do we need to throw an error?
 	}
 
 	@Override

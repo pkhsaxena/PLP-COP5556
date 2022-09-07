@@ -19,7 +19,7 @@ public class Lexer implements ILexer {
 	 * HAS_STRINGLIT -> An open quote is followed by something not(\ | ")
 	 * state. Just return the value.
 	 * IN_IDENT -> Checks for Boolean and for keyword
-	 * 
+	 *
 	 */
 	private enum State {
 		START, IN_IDENT, HAS_ZERO, IN_NUM, HAS_QUOTE, HAS_BACKSLASH, HAS_STRINGLIT, HAS_FOWRWARDSHLASH,
@@ -57,12 +57,22 @@ public class Lexer implements ILexer {
 			{ "#", Kind.NEQ }
 	}).collect(Collectors.toMap(data -> (String) data[0], data -> (Kind) data[1]));
 
+	private Map<Character, Character> escSeqReplacement = Stream.of(new Object[][] {
+			{ 'b', '\b' },
+			{ 't', '\t' },
+			{ 'n', '\n' },
+			{ 'f',  '\f'},
+			{ 'r', '\r' },
+	}).collect(Collectors.toMap(data -> (Character) data[0], data -> (Character) data[1]));
+
 	private int tokenIndex;
 
 	public Lexer(String input) {
 		final int inputLength;
 		int lineNumber, columnNumber, currentColumnNumber, currentCharacterIndex;
 		StringBuilder tokenBuilder = new StringBuilder();
+		//text is how the string literal appears in the input, string value is the representation of the string after escape sequence has been computed
+		StringBuilder stringTextBuilder = new StringBuilder();
 		State currentState = State.START;
 		char currentCharacter;
 		String tokenString;
@@ -109,7 +119,7 @@ public class Lexer implements ILexer {
 					}
 
 					// Check single char tokens
-					if (Set.of('.', ',', ';', '(', ')', '+', '-', '*', '%', '?', '!', '=', '#')
+					else if (Set.of('.', ',', ';', '(', ')', '+', '-', '*', '%', '?', '!', '=', '#')
 							.contains(currentCharacter)) {
 						tokenList.add(new Token(singleToken.get(Character.toString(currentCharacter)), lineNumber,
 								columnNumber,
@@ -120,7 +130,7 @@ public class Lexer implements ILexer {
 					}
 
 					// Check for COLON
-					if (currentCharacter == ':') {
+					else if (currentCharacter == ':') {
 						currentColumnNumber = columnNumber;
 						currentState = State.HAS_COLON;
 						columnNumber += 1;
@@ -129,7 +139,7 @@ public class Lexer implements ILexer {
 					}
 
 					// Check for >
-					if (currentCharacter == '>') {
+					else if (currentCharacter == '>') {
 						currentColumnNumber = columnNumber;
 						currentState = State.HAS_GREATER_THAN;
 						columnNumber += 1;
@@ -138,7 +148,7 @@ public class Lexer implements ILexer {
 					}
 
 					// Check for <
-					if (currentCharacter == '<') {
+					else if (currentCharacter == '<') {
 						currentColumnNumber = columnNumber;
 						currentState = State.HAS_LESS_THAN;
 						columnNumber += 1;
@@ -147,7 +157,7 @@ public class Lexer implements ILexer {
 					}
 
 					// check for identifier
-					if ((currentCharacter >= 'a' && currentCharacter <= 'z')
+					else if ((currentCharacter >= 'a' && currentCharacter <= 'z')
 							|| (currentCharacter >= 'A' && currentCharacter <= 'Z') || (currentCharacter == '_')
 							|| (currentCharacter == '$')) {
 						currentColumnNumber = columnNumber;
@@ -159,7 +169,7 @@ public class Lexer implements ILexer {
 					}
 
 					// Check for forward slash
-					if (currentCharacter == '/') {
+					else if (currentCharacter == '/') {
 						currentColumnNumber = columnNumber;
 						currentState = State.HAS_FOWRWARDSHLASH;
 						columnNumber += 1;
@@ -168,12 +178,32 @@ public class Lexer implements ILexer {
 					}
 
 					// Check for open quote
-					if (currentCharacter == '"') { // TODO: Remove false
+					else if (currentCharacter == '"') {
+						currentColumnNumber = columnNumber;
+						columnNumber+=1;
 						currentState = State.HAS_STRINGLIT;
+						stringTextBuilder.append(currentCharacter);
+						currentCharacterIndex+=1;
+					}
+
+					else if(currentCharacter == '0') {
+						tokenBuilder.append(currentCharacter);
+						tokenList.add(new Token(Kind.NUM_LIT, lineNumber, columnNumber, tokenBuilder.toString()));
+						tokenBuilder = new StringBuilder();
+						columnNumber += 1;
+						currentCharacterIndex += 1;
+					}
+
+					else if(currentCharacter >= '1' && currentCharacter <= '9') {
+						currentState = State.IN_NUM;
+						currentColumnNumber = columnNumber;
+						tokenBuilder.append(currentCharacter);
+						columnNumber += 1;
+						currentCharacterIndex += 1;
 					}
 
 					// Check EOF
-					if (currentCharacter == 0) {
+					else if (currentCharacter == 0) {
 						currentColumnNumber = columnNumber;
 						tokenList.add(new Token(Kind.EOF, lineNumber, currentColumnNumber,
 								Character.toString(currentCharacter)));
@@ -266,22 +296,23 @@ public class Lexer implements ILexer {
 				}
 
 				case HAS_STRINGLIT -> {
-					tokenBuilder.append(currentCharacter);
+					stringTextBuilder.append(currentCharacter);
 					if (!Set.of('\\', '"').contains(currentCharacter)) {
-						currentCharacterIndex++;
-						columnNumber++;
+						tokenBuilder.append(currentCharacter);
+						currentCharacterIndex+=1;
+						columnNumber+=1;
 					} else if (currentCharacter == '\\') {
 						//escape sequence start
-						currentCharacterIndex++;
-						columnNumber++;
+						currentCharacterIndex+=1;
+						columnNumber+=1;
 						currentState = State.HAS_BACKSLASH;
 					} else if (currentCharacter == '"') {
 						//string literal end
-						currentCharacterIndex++;
-						columnNumber++;
-						//TODO: for tokens with multiple characters, do we store start or end column number??
+						currentCharacterIndex+=1;
+						columnNumber+=1;
 						currentState = State.START;
-						tokenList.add(new Token(Kind.STRING_LIT, lineNumber, columnNumber, tokenBuilder.toString()));
+						tokenList.add(new Token(Kind.STRING_LIT, lineNumber, currentColumnNumber, stringTextBuilder.toString(), tokenBuilder.toString()));
+						stringTextBuilder = new StringBuilder();
 						tokenBuilder = new StringBuilder(); // reset token builder
 					} else {
 						//error! cannot parse input further, store token formed till here
@@ -292,19 +323,45 @@ public class Lexer implements ILexer {
 
 				case HAS_BACKSLASH -> {
 					// valid escape sequence check
-					if (Set.of('b', 't', 'n', 'f', 'r', '"', "'", '\\').contains(currentCharacter)) {
+					if (Set.of('"', '\'', '\\').contains(currentCharacter)) {
 						// if valid escape sequence, continue to search for string literal end
-						currentCharacterIndex++;
-						columnNumber++;
+						tokenBuilder.append(currentCharacter);
+						stringTextBuilder.append(currentCharacter);
+						currentCharacterIndex += 1;
+						columnNumber += 1;
+						currentState = State.HAS_STRINGLIT;
+					} else if (Set.of('b', 't', 'n', 'f', 'r').contains(currentCharacter)) {
+						tokenBuilder.append(escSeqReplacement.get(currentCharacter));
+						stringTextBuilder.append(currentCharacter);
+						currentCharacterIndex += 1;
+						columnNumber += 1;
 						currentState = State.HAS_STRINGLIT;
 					} else {
-						//error! cannot parse input further, store token formed till here
+						// error! cannot parse input further, store token formed till here
 						tokenList.add(new Token(Kind.ERROR, lineNumber, columnNumber, tokenBuilder.toString()));
+						break;
+					}
+				}
+
+				case IN_NUM -> {
+					if(currentCharacter >= '0' && currentCharacter <= '9') {
+						currentCharacterIndex += 1;
+						columnNumber += 1;
+						tokenBuilder.append(currentCharacter);
+					} else if (currentCharacter == '\n' || currentCharacter == '\r' || currentCharacter != 0) {
+						//numeric literal has ended one character before this, store in token
+						tokenList.add(new Token(Kind.NUM_LIT, lineNumber, currentColumnNumber, tokenBuilder.toString()));
+						tokenBuilder = new StringBuilder();
+						//don't increment index to allow START state to process line and column number
+						currentState = State.START;
+					} else {
+						tokenList.add(new Token(Kind.ERROR, lineNumber, currentColumnNumber, tokenBuilder.toString()));
 						break;
 					}
 				}
 			}
 		}
+		tokenList.forEach(i->System.out.println(i.getKind()));
 	}
 
 	@Override
@@ -315,7 +372,7 @@ public class Lexer implements ILexer {
 			if (rToken.getKind() != Kind.ERROR) {
 				return rToken;
 			} else {
-				// TODO: Throw error
+				throw new LexicalException("Lexer encountered an error");
 			}
 		}
 		return null;

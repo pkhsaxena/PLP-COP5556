@@ -348,7 +348,7 @@ public class Lexer implements ILexer {
 						currentCharacterIndex += 1;
 						columnNumber += 1;
 						tokenBuilder.append(currentCharacter);
-					} else if (currentCharacter == '\n' || currentCharacter == '\r' || currentCharacter != 0) {
+					} else if (currentCharacter == '\n' || currentCharacter == '\r' || currentCharacter == 0) {
 						//numeric literal has ended one character before this, store in token
 						tokenList.add(new Token(Kind.NUM_LIT, lineNumber, currentColumnNumber, tokenBuilder.toString()));
 						tokenBuilder = new StringBuilder();
@@ -361,7 +361,6 @@ public class Lexer implements ILexer {
 				}
 			}
 		}
-		tokenList.forEach(i->System.out.println(i.getKind()));
 	}
 
 	@Override

@@ -348,15 +348,12 @@ public class Lexer implements ILexer {
 						currentCharacterIndex += 1;
 						columnNumber += 1;
 						tokenBuilder.append(currentCharacter);
-					} else if (currentCharacter == '\n' || currentCharacter == '\r' || currentCharacter == 0) {
+					} else {
 						//numeric literal has ended one character before this, store in token
 						tokenList.add(new Token(Kind.NUM_LIT, lineNumber, currentColumnNumber, tokenBuilder.toString()));
 						tokenBuilder = new StringBuilder();
-						//don't increment index to allow START state to process line and column number
+						//don't increment index to allow START state to process line and column number and the current character
 						currentState = State.START;
-					} else {
-						tokenList.add(new Token(Kind.ERROR, lineNumber, currentColumnNumber, tokenBuilder.toString()));
-						break;
 					}
 				}
 			}

@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package edu.ufl.cise.plpfa22;
 
@@ -13,36 +13,69 @@ public class Token implements IToken {
 	 * Bool Value if Bool
 	 * String Value if STRING_LIT
 	 */
-	private final Kind tokenKind;
-	private final int lineNumber;
-	private final int columnNumber;
-	private final String rawText;
-	private final int intValue;
-	private final boolean boolValue;
-	private final String strValue;
+	private Kind tokenKind;
+	private int lineNumber;
+	private int columnNumber;
+	private String rawText;
+	private Integer intValue;
+	private Boolean boolValue;
+	private String strValue;
 
 	public Token(Kind tokenKind, int lineNumber, int columnNumber, String rawText) {
 		this.tokenKind = tokenKind;
 		this.lineNumber = lineNumber;
 		this.columnNumber = columnNumber;
 		this.rawText = rawText;
+
 		if (tokenKind == Kind.NUM_LIT) {
-			intValue = Integer.parseInt(rawText);
-			boolValue = Boolean.FALSE;
-			strValue = "";
+			try {
+				this.intValue = Integer.parseInt(rawText);
+			} catch (NumberFormatException e) {
+				// suppress
+				this.tokenKind = Kind.ERROR;
+				this.intValue = null;
+			}
+			this.boolValue = Boolean.FALSE;
+			this.strValue = "";
 		} else if (tokenKind == Kind.BOOLEAN_LIT) {
-			intValue = Integer.MIN_VALUE;
-			boolValue = Boolean.parseBoolean(rawText);
-			strValue = "";
+			this.intValue = Integer.MIN_VALUE;
+			this.boolValue = Boolean.parseBoolean(rawText);
+			this.strValue = "";
 		} else if (tokenKind == Kind.STRING_LIT) {
 			// TODO: Implement based on what raw string is.
-			intValue = Integer.MIN_VALUE;
-			boolValue = Boolean.FALSE;
-			strValue = ""; // TODO: Fix actual string value
+			this.intValue = Integer.MIN_VALUE;
+			this.boolValue = Boolean.FALSE;
+			this.strValue = ""; // TODO: Fix actual string value
 		} else {
-			intValue = Integer.MIN_VALUE;
-			boolValue = Boolean.FALSE;
-			strValue = "";
+			this.intValue = Integer.MIN_VALUE;
+			this.boolValue = Boolean.FALSE;
+			this.strValue = "";
+		}
+	}
+
+	public Token(Kind tokenKind, int lineNumber, int columnNumber, String rawText, String strValue) {
+		this.tokenKind = tokenKind;
+		this.lineNumber = lineNumber;
+		this.columnNumber = columnNumber;
+		this.rawText = rawText;
+
+		if (tokenKind == Kind.NUM_LIT) {
+			this.intValue = Integer.parseInt(rawText);
+			this.boolValue = Boolean.FALSE;
+			this.strValue = "";
+		} else if (tokenKind == Kind.BOOLEAN_LIT) {
+			this.intValue = Integer.MIN_VALUE;
+			this.boolValue = Boolean.parseBoolean(rawText);
+			this.strValue = "";
+		} else if (tokenKind == Kind.STRING_LIT) {
+			// TODO: Implement based on what raw string is.
+			this.intValue = Integer.MIN_VALUE;
+			this.boolValue = Boolean.FALSE;
+			this.strValue = strValue; // TODO: Fix actual string value
+		} else {
+			this.intValue = Integer.MIN_VALUE;
+			this.boolValue = Boolean.FALSE;
+			this.strValue = "";
 		}
 	}
 

@@ -41,11 +41,6 @@ public class Token implements IToken {
 			this.intValue = Integer.MIN_VALUE;
 			this.boolValue = Boolean.parseBoolean(rawText);
 			this.strValue = "";
-		} else if (tokenKind == Kind.STRING_LIT) {
-			// TODO: Implement based on what raw string is.
-			this.intValue = Integer.MIN_VALUE;
-			this.boolValue = Boolean.FALSE;
-			this.strValue = ""; // TODO: Fix actual string value
 		} else {
 			this.intValue = Integer.MIN_VALUE;
 			this.boolValue = Boolean.FALSE;
@@ -58,20 +53,10 @@ public class Token implements IToken {
 		this.lineNumber = lineNumber;
 		this.columnNumber = columnNumber;
 		this.rawText = rawText;
-
-		if (tokenKind == Kind.NUM_LIT) {
-			this.intValue = Integer.parseInt(rawText);
-			this.boolValue = Boolean.FALSE;
-			this.strValue = "";
-		} else if (tokenKind == Kind.BOOLEAN_LIT) {
-			this.intValue = Integer.MIN_VALUE;
-			this.boolValue = Boolean.parseBoolean(rawText);
-			this.strValue = "";
-		} else if (tokenKind == Kind.STRING_LIT) {
-			// TODO: Implement based on what raw string is.
+		if (tokenKind == Kind.STRING_LIT) {
 			this.intValue = Integer.MIN_VALUE;
 			this.boolValue = Boolean.FALSE;
-			this.strValue = strValue; // TODO: Fix actual string value
+			this.strValue = strValue;
 		} else {
 			this.intValue = Integer.MIN_VALUE;
 			this.boolValue = Boolean.FALSE;
@@ -103,7 +88,7 @@ public class Token implements IToken {
 		if (tokenKind == Kind.NUM_LIT) {
 			return intValue;
 		}
-		return Integer.MIN_VALUE; // TODO: Do we need to throw an error?
+		return Integer.MIN_VALUE;
 	}
 
 	@Override
@@ -112,7 +97,7 @@ public class Token implements IToken {
 		if (tokenKind == Kind.BOOLEAN_LIT) {
 			return boolValue;
 		}
-		return Boolean.FALSE; // TODO: Do we need to throw an error?
+		return Boolean.FALSE;
 	}
 
 	@Override
@@ -121,6 +106,6 @@ public class Token implements IToken {
 		if (tokenKind == Kind.STRING_LIT) {
 			return strValue;
 		}
-		return null; // TODO: Do we need to throw an error?
+		return null;
 	}
 }

@@ -296,35 +296,134 @@ class LexerTest {
 		ILexer lexer = getLexer(input);
 
 		IToken t = lexer.next();
-		//show(t.getKind());
-		//show(t.getSourceLocation());
+		// show(t.getKind());
+		// show(t.getSourceLocation());
 		checkToken(t, Kind.IDENT, 1, 1);
 
 		t = lexer.next();
-		//show(t.getKind());
-		//show(t.getSourceLocation());
+		// show(t.getKind());
+		// show(t.getSourceLocation());
 		checkToken(t, Kind.DIV, 1, 5);
 
 		t = lexer.next();
 
 		t = lexer.next();
-		//show(t.getKind());
-		//show(t.getSourceLocation());
+		// show(t.getKind());
+		// show(t.getSourceLocation());
 		checkToken(t, Kind.IDENT, 2, 1);
 
 		t = lexer.next();
-		//show(t.getKind());
-		//show(t.getSourceLocation());
+		// show(t.getKind());
+		// show(t.getSourceLocation());
 		checkToken(t, Kind.IDENT, 2, 5);
 
 		t = lexer.next();
-		//show(t.getKind());
-		//show(t.getSourceLocation());
+		// show(t.getKind());
+		// show(t.getSourceLocation());
 		checkToken(t, Kind.QUESTION, 2, 10);
 
 		t = lexer.next();
-		//show(t.getKind());
-		//show(t.getSourceLocation());
+		// show(t.getKind());
+		// show(t.getSourceLocation());
 		checkEOF(t);
+	}
+
+	@Test
+	public void testIdenInt1() throws LexicalException {
+		String input = """
+				a123 456b 657ABCD""";
+		show(input);
+		show("********************");
+		ILexer lexer = getLexer(input);
+		checkIdent(lexer.next(), "a123", 1, 1);
+		checkInt(lexer.next(), 456, 1, 6);
+		checkIdent(lexer.next(), "b", 1, 9);
+		checkInt(lexer.next(), 657, 1, 11);
+		checkIdent(lexer.next(), "ABCD", 1, 14);
+		checkEOF(lexer.next());
+	}
+
+	@Test
+	public void testIdenInt2() throws LexicalException {
+		String input = "a123 456b 657";
+		show(input);
+		show("---------------");
+		ILexer lexer = getLexer(input);
+		checkIdent(lexer.next(), "a123", 1, 1);
+		checkInt(lexer.next(), 456, 1, 6);
+		checkIdent(lexer.next(), "b", 1, 9);
+		checkInt(lexer.next(), 657, 1, 11);
+		checkEOF(lexer.next());
+	}
+
+	@Test
+	public void testString1() throws LexicalException {
+		String input = """
+				"abcd \\r \\n \\b \\\\ \\" \\\\ \\b \\n \\' \\" \\\\ "
+				""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		IToken t = lexer.next();
+		String val = t.getStringValue();
+		String expectedStringValue = "abcd \r \n \b \\ \" \\ \b \n \' \" \\ ";
+		String text = String.valueOf(t.getText());
+		String expectedText = "\"abcd \\r \\n \\b \\\\ \\\" \\\\ \\b \\n \\' \\\" \\\\ \"";
+		assertEquals(expectedText, text);
+		assertEquals(expectedStringValue, val);
+	}
+
+	@Test
+	public void testString2() throws LexicalException {
+		String input = """
+				"abcd \\r \\n \\b \\\\ \\" \\\\ \\b \\n \\' \\" \\\\ "ABCD
+				""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		IToken t = lexer.next();
+		String val = t.getStringValue();
+		String expectedStringValue = "abcd \r \n \b \\ \" \\ \b \n \' \" \\ ";
+		String text = String.valueOf(t.getText());
+		String expectedText = "\"abcd \\r \\n \\b \\\\ \\\" \\\\ \\b \\n \\' \\\" \\\\ \"";
+		assertEquals(expectedText, text);
+		assertEquals(expectedStringValue, val);
+		t = lexer.next();
+		checkIdent(t, "ABCD");
+	}
+
+	@Test
+	public void testString3() throws LexicalException {
+		String input = """
+				"abcd \\r \\n \\b \\\\ \\" \\\\ hello \\b \\n \\' \\" \\\\ "ABCD
+				""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		IToken t = lexer.next();
+		String val = t.getStringValue();
+		String expectedStringValue = "abcd \r \n \b \\ \" \\ hello \b \n \' \" \\ ";
+		String text = String.valueOf(t.getText());
+		String expectedText = "\"abcd \\r \\n \\b \\\\ \\\" \\\\ hello \\b \\n \\' \\\" \\\\ \"";
+		assertEquals(expectedText, text);
+		assertEquals(expectedStringValue, val);
+		t = lexer.next();
+		checkIdent(t, "ABCD");
+	}
+
+	@Test
+	public void testString4() throws LexicalException {
+		String input = """
+				"abcd \\r \\n \\b \\\\ \\" \\\\ hello
+				world \\b \\n \\' \\" \\\\ "ABCD
+				""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		IToken t = lexer.next();
+		String val = t.getStringValue();
+		String expectedStringValue = "abcd \r \n \b \\ \" \\ hello\nworld \b \n \' \" \\ ";
+		String text = String.valueOf(t.getText());
+		String expectedText = "\"abcd \\r \\n \\b \\\\ \\\" \\\\ hello\nworld \\b \\n \\' \\\" \\\\ \"";
+		assertEquals(expectedText, text);
+		assertEquals(expectedStringValue, val);
+		t = lexer.next();
+		checkIdent(t, "ABCD");
 	}
 }

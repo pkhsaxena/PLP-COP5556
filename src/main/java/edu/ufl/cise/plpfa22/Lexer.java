@@ -22,8 +22,8 @@ public class Lexer implements ILexer {
 	 *
 	 */
 	private enum State {
-		START, IN_IDENT, HAS_ZERO, IN_NUM, HAS_QUOTE, HAS_BACKSLASH, HAS_STRINGLIT, HAS_FOWRWARDSHLASH,
-		HAS_COMMENT, HAS_COMMENT_CR, COMMENT, HAS_COLON, HAS_LESS_THAN, HAS_GREATER_THAN
+		START, IN_IDENT, IN_NUM, HAS_BACKSLASH, HAS_STRINGLIT, HAS_FOWRWARDSHLASH, HAS_COMMENT, HAS_COLON,
+		HAS_LESS_THAN, HAS_GREATER_THAN
 	};
 
 	private Map<String, Kind> reservedWords = Stream.of(new Object[][] {
@@ -61,7 +61,7 @@ public class Lexer implements ILexer {
 			{ 'b', '\b' },
 			{ 't', '\t' },
 			{ 'n', '\n' },
-			{ 'f',  '\f'},
+			{ 'f', '\f' },
 			{ 'r', '\r' },
 	}).collect(Collectors.toMap(data -> (Character) data[0], data -> (Character) data[1]));
 
@@ -71,7 +71,8 @@ public class Lexer implements ILexer {
 		final int inputLength;
 		int lineNumber, columnNumber, currentColumnNumber, currentCharacterIndex;
 		StringBuilder tokenBuilder = new StringBuilder();
-		//text is how the string literal appears in the input, string value is the representation of the string after escape sequence has been computed
+		// text is how the string literal appears in the input, string value is the
+		// representation of the string after escape sequence has been computed
 		StringBuilder stringTextBuilder = new StringBuilder();
 		State currentState = State.START;
 		char currentCharacter;
@@ -111,7 +112,6 @@ public class Lexer implements ILexer {
 							if (currentCharacter == ' ')
 								columnNumber += 1;
 							if (currentCharacter == '\t') {
-								// TODO: Do we have tabs in input?
 							}
 						}
 						currentCharacterIndex += 1;
@@ -180,13 +180,13 @@ public class Lexer implements ILexer {
 					// Check for open quote
 					else if (currentCharacter == '"') {
 						currentColumnNumber = columnNumber;
-						columnNumber+=1;
+						columnNumber += 1;
 						currentState = State.HAS_STRINGLIT;
 						stringTextBuilder.append(currentCharacter);
-						currentCharacterIndex+=1;
+						currentCharacterIndex += 1;
 					}
 
-					else if(currentCharacter == '0') {
+					else if (currentCharacter == '0') {
 						tokenBuilder.append(currentCharacter);
 						tokenList.add(new Token(Kind.NUM_LIT, lineNumber, columnNumber, tokenBuilder.toString()));
 						tokenBuilder = new StringBuilder();
@@ -194,7 +194,7 @@ public class Lexer implements ILexer {
 						currentCharacterIndex += 1;
 					}
 
-					else if(currentCharacter >= '1' && currentCharacter <= '9') {
+					else if (currentCharacter >= '1' && currentCharacter <= '9') {
 						currentState = State.IN_NUM;
 						currentColumnNumber = columnNumber;
 						tokenBuilder.append(currentCharacter);
@@ -215,8 +215,8 @@ public class Lexer implements ILexer {
 						currentColumnNumber = columnNumber;
 						tokenList.add(new Token(Kind.ERROR, lineNumber, currentColumnNumber,
 								Character.toString(currentCharacter)));
-						currentCharacterIndex += 1; // TODO: Break, once all states are written and Exception is thrown.
-													// This is added so all tests run.
+						currentCharacterIndex = inputLength;
+						break;
 					}
 				}
 
@@ -299,23 +299,24 @@ public class Lexer implements ILexer {
 					stringTextBuilder.append(currentCharacter);
 					if (!Set.of('\\', '"').contains(currentCharacter)) {
 						tokenBuilder.append(currentCharacter);
-						currentCharacterIndex+=1;
-						columnNumber+=1;
+						currentCharacterIndex += 1;
+						columnNumber += 1;
 					} else if (currentCharacter == '\\') {
-						//escape sequence start
-						currentCharacterIndex+=1;
-						columnNumber+=1;
+						// escape sequence start
+						currentCharacterIndex += 1;
+						columnNumber += 1;
 						currentState = State.HAS_BACKSLASH;
 					} else if (currentCharacter == '"') {
-						//string literal end
-						currentCharacterIndex+=1;
-						columnNumber+=1;
+						// string literal end
+						currentCharacterIndex += 1;
+						columnNumber += 1;
 						currentState = State.START;
-						tokenList.add(new Token(Kind.STRING_LIT, lineNumber, currentColumnNumber, stringTextBuilder.toString(), tokenBuilder.toString()));
+						tokenList.add(new Token(Kind.STRING_LIT, lineNumber, currentColumnNumber,
+								stringTextBuilder.toString(), tokenBuilder.toString()));
 						stringTextBuilder = new StringBuilder();
 						tokenBuilder = new StringBuilder(); // reset token builder
 					} else {
-						//error! cannot parse input further, store token formed till here
+						// error! cannot parse input further, store token formed till here
 						tokenList.add(new Token(Kind.ERROR, lineNumber, columnNumber, tokenBuilder.toString()));
 						break;
 					}
@@ -344,15 +345,17 @@ public class Lexer implements ILexer {
 				}
 
 				case IN_NUM -> {
-					if(currentCharacter >= '0' && currentCharacter <= '9') {
+					if (currentCharacter >= '0' && currentCharacter <= '9') {
 						currentCharacterIndex += 1;
 						columnNumber += 1;
 						tokenBuilder.append(currentCharacter);
 					} else {
-						//numeric literal has ended one character before this, store in token
-						tokenList.add(new Token(Kind.NUM_LIT, lineNumber, currentColumnNumber, tokenBuilder.toString()));
+						// numeric literal has ended one character before this, store in token
+						tokenList
+								.add(new Token(Kind.NUM_LIT, lineNumber, currentColumnNumber, tokenBuilder.toString()));
 						tokenBuilder = new StringBuilder();
-						//don't increment index to allow START state to process line and column number and the current character
+						// don't increment index to allow START state to process line and column number
+						// and the current character
 						currentState = State.START;
 					}
 				}
@@ -368,10 +371,11 @@ public class Lexer implements ILexer {
 			if (rToken.getKind() != Kind.ERROR) {
 				return rToken;
 			} else {
-				throw new LexicalException("Lexer encountered an error");
+				throw new LexicalException("Lexer encountered an error", rToken.getSourceLocation());
 			}
+		} else {
+			throw new LexicalException("No more tokens");
 		}
-		return null;
 	}
 
 	@Override
@@ -381,9 +385,10 @@ public class Lexer implements ILexer {
 			if (rToken.getKind() != Kind.ERROR) {
 				return rToken;
 			} else {
-				// TODO: Throw error
+				throw new LexicalException("Lexer encountered an error", rToken.getSourceLocation());
 			}
+		} else {
+			throw new LexicalException("No more tokens");
 		}
-		return null;
 	}
 }

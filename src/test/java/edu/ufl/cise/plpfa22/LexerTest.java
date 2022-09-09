@@ -426,4 +426,17 @@ class LexerTest {
 		t = lexer.next();
 		checkIdent(t, "ABCD");
 	}
+
+	@Test
+	public void testString5() throws LexicalException {
+		String input = """
+				"Hello \\k world"
+				""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		assertThrows(LexicalException.class, () -> {
+			@SuppressWarnings("unused")
+			IToken token = lexer.next();
+		});
+	}
 }

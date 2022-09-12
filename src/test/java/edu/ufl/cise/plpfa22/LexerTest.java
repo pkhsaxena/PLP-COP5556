@@ -439,4 +439,211 @@ class LexerTest {
 			IToken token = lexer.next();
 		});
 	}
+
+	// Test 1
+	// identifier.
+	@Test
+	void testID() throws LexicalException {
+		String input = "ad23";
+		show(input);
+		ILexer lexer = getLexer(input);
+		show(lexer);
+		checkToken(lexer.next(), Kind.IDENT, 1, 1);
+		checkEOF(lexer.next());
+	}
+
+	// Test 2
+	// booleans
+	// check that this token is an BOOLEAN_LIT with expected value
+	void checkBoolean(IToken t, boolean expectedValue) {
+		assertEquals(Kind.BOOLEAN_LIT, t.getKind());
+		assertEquals(expectedValue, t.getBooleanValue());
+	}
+
+	@Test
+	public void testBooleans() throws LexicalException {
+		String input = """
+				TRUE
+				FALSE
+				""";
+		ILexer lexer = getLexer(input);
+		checkBoolean(lexer.next(), true);
+		checkBoolean(lexer.next(), false);
+		checkEOF(lexer.next());
+	}
+
+	// Test 3
+	// Mix of ID's, Num_lit, comments, string_lit's
+	@Test
+	public void testIDNNUM() throws LexicalException {
+		String input = """
+				df123 345 g546 IF
+				//next is string
+
+				 "Hello, World"
+				""";
+		ILexer lexer = getLexer(input);
+		checkIdent(lexer.next(), "df123", 1, 1);
+		checkInt(lexer.next(), 345, 1, 7);
+		checkIdent(lexer.next(), "g546", 1, 11);
+		checkToken(lexer.next(), Kind.KW_IF, 1, 16);
+		checkToken(lexer.next(), Kind.STRING_LIT, 4, 2);
+		checkEOF(lexer.next());
+	}
+
+	// Test 4
+	// . , ; ( ) + - * / % ? ! := = # < <= > >=
+	@Test
+	public void testAllSymmbols() throws LexicalException {
+		String input = """
+				. , ; ( ) + - * / %
+				//next is line 3
+				? ! := = # < <= > >=
+				""";
+
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.DOT, 1, 1);
+		checkToken(lexer.next(), Kind.COMMA, 1, 3);
+		checkToken(lexer.next(), Kind.SEMI, 1, 5);
+		checkToken(lexer.next(), Kind.LPAREN, 1, 7);
+		checkToken(lexer.next(), Kind.RPAREN, 1, 9);
+		checkToken(lexer.next(), Kind.PLUS, 1, 11);
+		checkToken(lexer.next(), Kind.MINUS, 1, 13);
+		checkToken(lexer.next(), Kind.TIMES, 1, 15);
+		checkToken(lexer.next(), Kind.DIV, 1, 17);
+		checkToken(lexer.next(), Kind.MOD, 1, 19);
+		checkToken(lexer.next(), Kind.QUESTION, 3, 1);
+		checkToken(lexer.next(), Kind.BANG, 3, 3);
+		checkToken(lexer.next(), Kind.ASSIGN, 3, 5);
+		checkToken(lexer.next(), Kind.EQ, 3, 8);
+		checkToken(lexer.next(), Kind.NEQ, 3, 10);
+		checkToken(lexer.next(), Kind.LT, 3, 12);
+		checkToken(lexer.next(), Kind.LE, 3, 14);
+		checkToken(lexer.next(), Kind.GT, 3, 17);
+		checkToken(lexer.next(), Kind.GE, 3, 19);
+		checkEOF(lexer.next());
+	}
+
+	// Test 5
+	// reserved words
+	@Test
+	public void testAllreserved1() throws LexicalException {
+		String input = """
+				CONST VAR PROCEDURE
+				     CALL BEGIN END
+				        //next is line 3
+				        IF THEN WHILE DO
+
+				""";
+
+		ILexer lexer = getLexer(input);
+		checkToken(lexer.next(), Kind.KW_CONST, 1, 1);
+		checkToken(lexer.next(), Kind.KW_VAR, 1, 7);
+		checkToken(lexer.next(), Kind.KW_PROCEDURE, 1, 11);
+		checkToken(lexer.next(), Kind.KW_CALL, 2, 6);
+		checkToken(lexer.next(), Kind.KW_BEGIN, 2, 11);
+		checkToken(lexer.next(), Kind.KW_END, 2, 17);
+		checkToken(lexer.next(), Kind.KW_IF, 4, 9);
+		checkToken(lexer.next(), Kind.KW_THEN, 4, 12);
+		checkToken(lexer.next(), Kind.KW_WHILE, 4, 17);
+		checkToken(lexer.next(), Kind.KW_DO, 4, 23);
+		checkEOF(lexer.next());
+	}
+
+	// Test 6
+	// 12+3
+	@Test
+	public void testNoSpace() throws LexicalException {
+		String input = """
+				12+3
+				""";
+
+		ILexer lexer = getLexer(input);
+		checkInt(lexer.next(), 12, 1, 1);
+		checkToken(lexer.next(), Kind.PLUS, 1, 3);
+		checkInt(lexer.next(), 3, 1, 4);
+		checkEOF(lexer.next());
+	}
+	
+	@Test
+	public void testSpaceInString() throws LexicalException {
+		String input = """
+				ABCD "Hello World
+				Bye bye"
+				123 TRUE!
+				""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkIdent(lexer.next(), "ABCD", 1, 1);
+		IToken t = lexer.next();
+		String val = t.getStringValue();
+		String expectedStringValue = "Hello World\nBye bye";
+		String text = String.valueOf(t.getText());
+		String expectedText = "\"Hello World\nBye bye\"";
+		show("TEXT:");
+		show(text);
+		show("EXPECTED:");
+		show(expectedText);
+		assertEquals(expectedText, text);
+		assertEquals(expectedStringValue, val);
+		checkInt(lexer.next(), 123, 3, 1);
+		checkBoolean(lexer.next(), true);
+		checkToken(lexer.next(), Kind.BANG, 3, 9);
+		checkEOF(lexer.next());
+	}
+	
+	@Test
+	public void testSpaceInString2() throws LexicalException {
+		String input = """
+				ABCD "Hello World\\n
+				Bye bye"
+				123 TRUE!
+				""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkIdent(lexer.next(), "ABCD", 1, 1);
+		IToken t = lexer.next();
+		String val = t.getStringValue();
+		String expectedStringValue = "Hello World\n\nBye bye";
+		String text = String.valueOf(t.getText());
+		String expectedText = "\"Hello World\\n\nBye bye\"";
+		show("TEXT:");
+		show(text);
+		show("EXPECTED:");
+		show(expectedText);
+		assertEquals(expectedText, text);
+		assertEquals(expectedStringValue, val);
+		checkInt(lexer.next(), 123, 3, 1);
+		checkBoolean(lexer.next(), true);
+		checkToken(lexer.next(), Kind.BANG, 3, 9);
+		checkEOF(lexer.next());
+	}
+	
+	@Test
+	public void testSpaceInString3() throws LexicalException {
+		String input = """
+				ABCD "Hello World\n
+				Bye bye"
+				123 TRUE!
+				""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkIdent(lexer.next(), "ABCD", 1, 1);
+		IToken t = lexer.next();
+		String val = t.getStringValue();
+		String expectedStringValue = "Hello World\n\nBye bye";
+		String text = String.valueOf(t.getText());
+		String expectedText = "\"Hello World\n\nBye bye\"";
+		show("TEXT:");
+		show(text);
+		show("EXPECTED:");
+		show(expectedText);
+		assertEquals(expectedText, text);
+		assertEquals(expectedStringValue, val);
+		checkInt(lexer.next(), 123, 4, 1);
+		checkBoolean(lexer.next(), true);
+		checkToken(lexer.next(), Kind.BANG, 4, 9);
+		checkEOF(lexer.next());
+	}
+
 }

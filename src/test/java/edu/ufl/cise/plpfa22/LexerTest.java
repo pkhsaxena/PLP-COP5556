@@ -645,5 +645,32 @@ class LexerTest {
 		checkToken(lexer.next(), Kind.BANG, 4, 9);
 		checkEOF(lexer.next());
 	}
+	
+	@Test
+	public void testSpaceInString4() throws LexicalException {
+		String input = """
+				ABCD "Hello World\r\n
+				Bye bye"
+				123 TRUE!
+				""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkIdent(lexer.next(), "ABCD", 1, 1);
+		IToken t = lexer.next();
+		String val = t.getStringValue();
+		String expectedStringValue = "Hello World\r\n\nBye bye";
+		String text = String.valueOf(t.getText());
+		String expectedText = "\"Hello World\r\n\nBye bye\"";
+		show("TEXT:");
+		show(text);
+		show("EXPECTED:");
+		show(expectedText);
+		assertEquals(expectedText, text);
+		assertEquals(expectedStringValue, val);
+		checkInt(lexer.next(), 123, 4, 1);
+		checkBoolean(lexer.next(), true);
+		checkToken(lexer.next(), Kind.BANG, 4, 9);
+		checkEOF(lexer.next());
+	}
 
 }

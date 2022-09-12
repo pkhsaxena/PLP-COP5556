@@ -109,10 +109,7 @@ public class Lexer implements ILexer {
 
 						// Check for white space
 						if (currentCharacter == ' ' || currentCharacter == '\t') {
-							if (currentCharacter == ' ')
-								columnNumber += 1;
-							if (currentCharacter == '\t') {
-							}
+							columnNumber += 1;
 						}
 						currentCharacterIndex += 1;
 						continue;

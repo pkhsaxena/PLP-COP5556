@@ -228,6 +228,7 @@ public class Lexer implements ILexer {
 						currentState = State.START;
 					} else {
 						tokenList.add(new Token(Kind.ERROR, lineNumber, currentColumnNumber, (":" + currentCharacter)));
+						currentCharacterIndex = inputLength;
 						break;
 					}
 				}
@@ -299,6 +300,10 @@ public class Lexer implements ILexer {
 					stringTextBuilder.append(currentCharacter);
 					if (!Set.of('\\', '"').contains(currentCharacter)) {
 						tokenBuilder.append(currentCharacter);
+						if (currentCharacter == '\n') {
+							lineNumber += 1;
+							columnNumber = 0; // Being set to 1 two lines below
+						}
 						currentCharacterIndex += 1;
 						columnNumber += 1;
 					} else if (currentCharacter == '\\') {
@@ -318,6 +323,7 @@ public class Lexer implements ILexer {
 					} else {
 						// error! cannot parse input further, store token formed till here
 						tokenList.add(new Token(Kind.ERROR, lineNumber, columnNumber, tokenBuilder.toString()));
+						currentCharacterIndex = inputLength;
 						break;
 					}
 				}
@@ -340,6 +346,7 @@ public class Lexer implements ILexer {
 					} else {
 						// error! cannot parse input further, store token formed till here
 						tokenList.add(new Token(Kind.ERROR, lineNumber, columnNumber, tokenBuilder.toString()));
+						currentCharacterIndex = inputLength;
 						break;
 					}
 				}

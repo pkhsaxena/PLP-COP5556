@@ -379,7 +379,12 @@ public class Lexer implements ILexer {
 				throw new LexicalException("Lexer encountered an error", rToken.getSourceLocation());
 			}
 		} else {
-			return tokenList.get(tokenList.size() - 1);
+			rToken = tokenList.get(tokenList.size() - 1);
+			if (rToken.getKind() != Kind.ERROR) {
+				return rToken;
+			} else {
+				throw new LexicalException("Lexer encountered an error", rToken.getSourceLocation());
+			}
 		}
 	}
 
@@ -393,7 +398,12 @@ public class Lexer implements ILexer {
 				throw new LexicalException("Lexer encountered an error", rToken.getSourceLocation());
 			}
 		} else {
-			return tokenList.get(tokenList.size() - 1);
+			rToken = tokenList.get(tokenList.size() - 1);
+			if (rToken.getKind() != Kind.ERROR) {
+				return rToken;
+			} else {
+				throw new LexicalException("Lexer encountered an error", rToken.getSourceLocation());
+			}
 		}
 	}
 }

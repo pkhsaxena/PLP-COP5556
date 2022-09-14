@@ -379,7 +379,7 @@ public class Lexer implements ILexer {
 				throw new LexicalException("Lexer encountered an error", rToken.getSourceLocation());
 			}
 		} else {
-			throw new LexicalException("No more tokens");
+			return tokenList.get(tokenList.size() - 1);
 		}
 	}
 
@@ -393,7 +393,7 @@ public class Lexer implements ILexer {
 				throw new LexicalException("Lexer encountered an error", rToken.getSourceLocation());
 			}
 		} else {
-			throw new LexicalException("No more tokens");
+			return tokenList.get(tokenList.size() - 1);
 		}
 	}
 }

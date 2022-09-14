@@ -1,5 +1,5 @@
-/**  This code is provided for solely for use of students in the course COP5556 Programming Language Principles at the 
- * University of Florida during the Fall Semester 2022 as part of the course project.  No other use is authorized. 
+/**  This code is provided for solely for use of students in the course COP5556 Programming Language Principles at the
+ * University of Florida during the Fall Semester 2022 as part of the course project.  No other use is authorized.
  */
 
 package edu.ufl.cise.plpfa22;
@@ -170,7 +170,7 @@ class LexerTest {
 				""";
 		ILexer lexer = getLexer(input);
 		checkInt(lexer.next(), 42);
-		Exception e = assertThrows(LexicalException.class, () -> {
+		assertThrows(LexicalException.class, () -> {
 			lexer.next();
 		});
 	}
@@ -564,7 +564,7 @@ class LexerTest {
 		checkInt(lexer.next(), 3, 1, 4);
 		checkEOF(lexer.next());
 	}
-	
+
 	@Test
 	public void testSpaceInString() throws LexicalException {
 		String input = """
@@ -591,7 +591,7 @@ class LexerTest {
 		checkToken(lexer.next(), Kind.BANG, 3, 9);
 		checkEOF(lexer.next());
 	}
-	
+
 	@Test
 	public void testSpaceInString2() throws LexicalException {
 		String input = """
@@ -618,7 +618,7 @@ class LexerTest {
 		checkToken(lexer.next(), Kind.BANG, 3, 9);
 		checkEOF(lexer.next());
 	}
-	
+
 	@Test
 	public void testSpaceInString3() throws LexicalException {
 		String input = """
@@ -645,7 +645,7 @@ class LexerTest {
 		checkToken(lexer.next(), Kind.BANG, 4, 9);
 		checkEOF(lexer.next());
 	}
-	
+
 	@Test
 	public void testSpaceInString4() throws LexicalException {
 		String input = """
@@ -672,19 +672,54 @@ class LexerTest {
 		checkToken(lexer.next(), Kind.BANG, 4, 9);
 		checkEOF(lexer.next());
 	}
-	
+
 	// Example showing how to handle number that are too big.
 	@Test
 	public void testIncompleteString() throws LexicalException {
 		String input = """
 				"Hello world
-				today was a 
+				today was a
 				good day
 				""";
 		ILexer lexer = getLexer(input);
 		assertThrows(LexicalException.class, () -> {
 			lexer.next();
 		});
+	}
+
+
+	@Test
+	public void test0Two0s() throws LexicalException {
+		String input = """
+				00
+				""";
+		ILexer lexer = getLexer(input);
+		IToken token = lexer.next();
+		assertEquals(token.getKind(), Kind.NUM_LIT);
+		assertEquals(token.getKind(), Kind.NUM_LIT);
+	}
+
+	@Test
+	public void testIdentFollowedByToken() throws LexicalException {
+		String input = """
+				identifier+
+				""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkIdent(lexer.next(), "identifier", 1, 1);
+		checkToken(lexer.next(), Kind.PLUS, 1, 11);
+	}
+
+	@Test
+	public void testIdentFollowedByInvalidChar() throws LexicalException {
+		String input = """
+
+				l@
+				""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkIdent(lexer.next(), "l", 2, 1);
+		assertThrows(LexicalException.class, () -> lexer.next());
 	}
 
 }

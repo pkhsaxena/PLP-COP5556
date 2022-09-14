@@ -295,7 +295,7 @@ public class Lexer implements ILexer {
 
 				case HAS_STRINGLIT -> {
 					stringTextBuilder.append(currentCharacter);
-					if (!Set.of('\\', '"').contains(currentCharacter)) {
+					if (!Set.of('\\', '"', ((char) 0)).contains(currentCharacter)) {
 						tokenBuilder.append(currentCharacter);
 						if (currentCharacter == '\n') {
 							lineNumber += 1;

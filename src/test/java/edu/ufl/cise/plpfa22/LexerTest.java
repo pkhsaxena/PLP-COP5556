@@ -672,5 +672,19 @@ class LexerTest {
 		checkToken(lexer.next(), Kind.BANG, 4, 9);
 		checkEOF(lexer.next());
 	}
+	
+	// Example showing how to handle number that are too big.
+	@Test
+	public void testIncompleteString() throws LexicalException {
+		String input = """
+				"Hello world
+				today was a 
+				good day
+				""";
+		ILexer lexer = getLexer(input);
+		assertThrows(LexicalException.class, () -> {
+			lexer.next();
+		});
+	}
 
 }

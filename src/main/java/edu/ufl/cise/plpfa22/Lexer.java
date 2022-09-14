@@ -69,7 +69,7 @@ public class Lexer implements ILexer {
 
 	public Lexer(String input) {
 		final int inputLength;
-		int lineNumber, columnNumber, currentColumnNumber, currentCharacterIndex;
+		int lineNumber, columnNumber, currentColumnNumber, currentCharacterIndex, currentLineNumber;
 		StringBuilder tokenBuilder = new StringBuilder();
 		// text is how the string literal appears in the input, string value is the
 		// representation of the string after escape sequence has been computed
@@ -81,7 +81,7 @@ public class Lexer implements ILexer {
 		input += Character.toString(0);
 		inputLength = input.length();
 		lineNumber = columnNumber = 1;
-		currentCharacterIndex = currentColumnNumber = 0;
+		currentCharacterIndex = currentColumnNumber = currentLineNumber = 0;
 		tokenIndex = 0;
 
 		while (currentCharacterIndex < inputLength) {
@@ -177,6 +177,7 @@ public class Lexer implements ILexer {
 					// Check for open quote
 					else if (currentCharacter == '"') {
 						currentColumnNumber = columnNumber;
+						currentLineNumber = lineNumber;
 						columnNumber += 1;
 						currentState = State.HAS_STRINGLIT;
 						stringTextBuilder.append(currentCharacter);
@@ -233,7 +234,7 @@ public class Lexer implements ILexer {
 				case IN_IDENT -> {
 					if ((currentCharacter >= 'a' && currentCharacter <= 'z')
 							|| (currentCharacter >= 'A' && currentCharacter <= 'Z') || (currentCharacter == '_')
-							|| (currentCharacter >= '$') || (currentCharacter >= '0' && currentCharacter <= '9')) {
+							|| (currentCharacter == '$') || (currentCharacter >= '0' && currentCharacter <= '9')) {
 						columnNumber += 1;
 						currentCharacterIndex += 1;
 						tokenBuilder.append(currentCharacter);
@@ -313,7 +314,7 @@ public class Lexer implements ILexer {
 						currentCharacterIndex += 1;
 						columnNumber += 1;
 						currentState = State.START;
-						tokenList.add(new Token(Kind.STRING_LIT, lineNumber, currentColumnNumber,
+						tokenList.add(new Token(Kind.STRING_LIT, currentLineNumber, currentColumnNumber,
 								stringTextBuilder.toString(), tokenBuilder.toString()));
 						stringTextBuilder = new StringBuilder();
 						tokenBuilder = new StringBuilder(); // reset token builder

@@ -370,8 +370,9 @@ public class Lexer implements ILexer {
 
 	@Override
 	public IToken next() throws LexicalException {
+		IToken rToken;
 		if (tokenIndex < tokenList.size()) {
-			IToken rToken = tokenList.get(tokenIndex);
+			rToken = tokenList.get(tokenIndex);
 			tokenIndex += 1;
 			if (rToken.getKind() != Kind.ERROR) {
 				return rToken;
@@ -390,8 +391,9 @@ public class Lexer implements ILexer {
 
 	@Override
 	public IToken peek() throws LexicalException {
+		IToken rToken;
 		if (tokenIndex < tokenList.size()) {
-			IToken rToken = tokenList.get(tokenIndex);
+			rToken = tokenList.get(tokenIndex);
 			if (rToken.getKind() != Kind.ERROR) {
 				return rToken;
 			} else {

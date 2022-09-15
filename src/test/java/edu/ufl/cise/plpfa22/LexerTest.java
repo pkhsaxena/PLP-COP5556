@@ -721,5 +721,27 @@ class LexerTest {
 		checkIdent(lexer.next(), "l", 2, 1);
 		assertThrows(LexicalException.class, () -> lexer.next());
 	}
+	
+	@Test
+	public void testMultipleEOF() throws LexicalException {
+		String input = """
+				""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkEOF(lexer.next());
+		checkEOF(lexer.next());
+	}
+	
+	@Test
+	public void testMultipleEOFPeek() throws LexicalException {
+		String input = """
+				""";
+		show(input);
+		ILexer lexer = getLexer(input);
+		checkEOF(lexer.peek());
+		checkEOF(lexer.next());
+		checkEOF(lexer.next());
+		checkEOF(lexer.peek());
+	}
 
 }

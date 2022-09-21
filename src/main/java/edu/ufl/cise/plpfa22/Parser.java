@@ -5,6 +5,7 @@ import edu.ufl.cise.plpfa22.IToken.SourceLocation;
 import edu.ufl.cise.plpfa22.ast.ASTNode;
 import edu.ufl.cise.plpfa22.ast.Expression;
 import edu.ufl.cise.plpfa22.ast.ExpressionBooleanLit;
+import edu.ufl.cise.plpfa22.ast.ExpressionIdent;
 import edu.ufl.cise.plpfa22.ast.ExpressionNumLit;
 import edu.ufl.cise.plpfa22.ast.ExpressionStringLit;
 import edu.ufl.cise.plpfa22.ast.SyntaxException;
@@ -212,16 +213,17 @@ public class Parser implements IParser {
 		}
 	}
 
-	private void primaryExp() throws LexicalException, SyntaxException {
+	private Expression primaryExp() throws LexicalException, SyntaxException {
+		IToken firstToken = currentToken;
+		Expression e = null;
 		if (isKind(Kind.IDENT)) {
-			// Changed from old format as AST might have issue, will need to check the kind
-			// anyway for AST returns.
 			consume();
+			e = new ExpressionIdent(firstToken);
 		} else if (isKind(Kind.NUM_LIT) || isKind(Kind.STRING_LIT) || isKind(Kind.BOOLEAN_LIT)) {
-			constVal();
+			e = constVal();
 		} else if (isKind(Kind.LPAREN)) {
 			consume();
-			exp();
+			e = exp();
 			if (isKind(Kind.RPAREN)) {
 				consume();
 			} else {
@@ -230,6 +232,7 @@ public class Parser implements IParser {
 		} else {
 			error();
 		}
+		return e;
 	}
 
 	private Expression constVal() throws LexicalException {

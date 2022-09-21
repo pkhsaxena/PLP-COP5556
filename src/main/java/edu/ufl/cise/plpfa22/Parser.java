@@ -4,6 +4,7 @@ import edu.ufl.cise.plpfa22.IToken.Kind;
 import edu.ufl.cise.plpfa22.IToken.SourceLocation;
 import edu.ufl.cise.plpfa22.ast.ASTNode;
 import edu.ufl.cise.plpfa22.ast.Expression;
+import edu.ufl.cise.plpfa22.ast.ExpressionBinary;
 import edu.ufl.cise.plpfa22.ast.ExpressionBooleanLit;
 import edu.ufl.cise.plpfa22.ast.ExpressionIdent;
 import edu.ufl.cise.plpfa22.ast.ExpressionNumLit;
@@ -205,12 +206,18 @@ public class Parser implements IParser {
 		}
 	}
 
-	private void mulExp() throws LexicalException {
-		primaryExp();
+	private Expression mulExp() throws LexicalException {
+		IToken firsToken = currentToken;
+		Expression left = null;
+		Expression right = null;
+		left = primaryExp();
 		while (isKind(Kind.TIMES) || isKind(Kind.DIV) || isKind(Kind.MOD)) {
+			IToken op = currentToken;
 			consume();
-			primaryExp();
+			right = primaryExp();
+			left = new ExpressionBinary(firstToken, left, op, right);
 		}
+		return left;
 	}
 
 	private Expression primaryExp() throws LexicalException, SyntaxException {

@@ -71,7 +71,19 @@ public class Parser implements IParser {
 				if (isKind(Kind.EQ)) {
 					consume();
 					Expression val = constVal();
-					constDecs.add(new ConstDec(firstToken, id, val));
+					switch (val.firstToken.getKind()) {
+						case NUM_LIT -> {
+							constDecs.add(new ConstDec(firstToken, id, val.firstToken.getIntValue()));
+						}
+						case STRING_LIT -> {
+							constDecs.add(new ConstDec(firstToken, id, val.firstToken.getStringValue()));
+						}
+						case BOOLEAN_LIT -> {
+							constDecs.add(new ConstDec(firstToken, id, val.firstToken.getBooleanValue()));
+						}
+						default -> {
+						} // Never reached
+					}
 					while (isKind(Kind.COMMA)) {
 						consume();
 						if (isKind(Kind.IDENT)) {
@@ -80,7 +92,19 @@ public class Parser implements IParser {
 							if (isKind(Kind.EQ)) {
 								consume();
 								val = constVal();
-								constDecs.add(new ConstDec(firstToken, id, val));
+								switch (val.firstToken.getKind()) {
+									case NUM_LIT -> {
+										constDecs.add(new ConstDec(firstToken, id, val.firstToken.getIntValue()));
+									}
+									case STRING_LIT -> {
+										constDecs.add(new ConstDec(firstToken, id, val.firstToken.getStringValue()));
+									}
+									case BOOLEAN_LIT -> {
+										constDecs.add(new ConstDec(firstToken, id, val.firstToken.getBooleanValue()));
+									}
+									default -> {
+									} // Never reached
+								}
 							} else {
 								error();
 							}
@@ -158,7 +182,7 @@ public class Parser implements IParser {
 		Statement s = null;
 		// <ident> := <expression
 		if (isKind(Kind.IDENT)) {
-			Ident var = new Ident(firstToken);
+			Ident var = new Ident(currentToken);
 			Expression e = null;
 			consume();
 			if (isKind(Kind.ASSIGN)) {
@@ -173,8 +197,8 @@ public class Parser implements IParser {
 		else if (isKind(Kind.KW_CALL)) {
 			consume();
 			if (isKind(Kind.IDENT)) {
+				Ident ident = new Ident(currentToken);
 				consume();
-				Ident ident = new Ident(firstToken);
 				s = new StatementCall(firstToken, ident);
 			} else {
 				error();
@@ -184,8 +208,8 @@ public class Parser implements IParser {
 		else if (isKind(Kind.QUESTION)) {
 			consume();
 			if (isKind(Kind.IDENT)) {
+				Ident name = new Ident(currentToken);
 				consume();
-				Ident name = new Ident(firstToken);
 				s = new StatementInput(firstToken, name);
 			} else {
 				error();
@@ -198,7 +222,7 @@ public class Parser implements IParser {
 			s = new StatementOutput(firstToken, e);
 		}
 		// BEGIN <statement> ( ; <statement> )* END
-		else if (isKind(Kind.KW_BEGIN)) { // TODO: Verify logic.
+		else if (isKind(Kind.KW_BEGIN)) {
 			consume();
 			List<Statement> statements = new ArrayList<Statement>();
 			Statement listItem = null;

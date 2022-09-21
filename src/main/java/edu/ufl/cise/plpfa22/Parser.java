@@ -5,6 +5,8 @@ import java.util.List;
 import edu.ufl.cise.plpfa22.IToken.Kind;
 import edu.ufl.cise.plpfa22.IToken.SourceLocation;
 import edu.ufl.cise.plpfa22.ast.ASTNode;
+import edu.ufl.cise.plpfa22.ast.Block;
+import edu.ufl.cise.plpfa22.ast.ConstDec;
 import edu.ufl.cise.plpfa22.ast.Expression;
 import edu.ufl.cise.plpfa22.ast.ExpressionBinary;
 import edu.ufl.cise.plpfa22.ast.ExpressionBooleanLit;
@@ -12,6 +14,7 @@ import edu.ufl.cise.plpfa22.ast.ExpressionIdent;
 import edu.ufl.cise.plpfa22.ast.ExpressionNumLit;
 import edu.ufl.cise.plpfa22.ast.ExpressionStringLit;
 import edu.ufl.cise.plpfa22.ast.Ident;
+import edu.ufl.cise.plpfa22.ast.ProcDec;
 import edu.ufl.cise.plpfa22.ast.Statement;
 import edu.ufl.cise.plpfa22.ast.StatementAssign;
 import edu.ufl.cise.plpfa22.ast.StatementBlock;
@@ -22,6 +25,7 @@ import edu.ufl.cise.plpfa22.ast.StatementInput;
 import edu.ufl.cise.plpfa22.ast.StatementOutput;
 import edu.ufl.cise.plpfa22.ast.StatementWhile;
 import edu.ufl.cise.plpfa22.ast.SyntaxException;
+import edu.ufl.cise.plpfa22.ast.VarDec;
 
 public class Parser implements IParser {
 
@@ -48,21 +52,30 @@ public class Parser implements IParser {
 		}
 	}
 
-	private void block() throws LexicalException, SyntaxException {
+	private Block block() throws LexicalException, SyntaxException {
+		IToken firstToken = currentToken; //TODO: Do we need to keep changing firstToken?
+		List<ConstDec> constDecs = new ArrayList<ConstDec>();
+		List<VarDec> varDecs = new ArrayList<VarDec>();
+		List<ProcDec> procDecs = new ArrayList<ProcDec>();
+
 		while (isKind(Kind.KW_CONST)) {
 			consume();
 			if (isKind(Kind.IDENT)) {
+				IToken id = currentToken;
 				consume();
 				if (isKind(Kind.EQ)) {
 					consume();
-					constVal();
+					Expression val = constVal();
+					constDecs.add(new ConstDec(firstToken, id, val));
 					while (isKind(Kind.COMMA)) {
 						consume();
 						if (isKind(Kind.IDENT)) {
+							id = currentToken;
 							consume();
 							if (isKind(Kind.EQ)) {
 								consume();
-								constVal();
+								val = constVal();
+								constDecs.add(new ConstDec(firstToken, id, val));
 							} else {
 								error();
 							}
@@ -86,10 +99,14 @@ public class Parser implements IParser {
 		while (isKind(Kind.KW_VAR)) {
 			consume();
 			if (isKind(Kind.IDENT)) {
+				IToken id = currentToken;
+				varDecs.add(new VarDec(firstToken, id));
 				consume();
 				while (isKind(Kind.COMMA)) {
 					consume();
 					if (isKind(Kind.IDENT)) {
+						id = currentToken;
+						varDecs.add(new VarDec(firstToken, id));
 						consume();
 					} else {
 						error();
@@ -108,10 +125,12 @@ public class Parser implements IParser {
 		while (isKind(Kind.KW_PROCEDURE)) {
 			consume();
 			if (isKind(Kind.IDENT)) {
+				IToken name = currentToken;
 				consume();
 				if (isKind(Kind.SEMI)) {
 					consume();
-					block();
+					Block body = block();
+					procDecs.add(new ProcDec(firstToken, name, body));
 					if (isKind(Kind.SEMI)) {
 						consume();
 					} else {
@@ -124,8 +143,9 @@ public class Parser implements IParser {
 				error();
 			}
 		}
+		Statement s = statement();
 
-		statement();
+		return Block(firstToken, constDecs, varDecs, procDecs, s);
 	}
 
 	private Statement statement() throws LexicalException, SyntaxException {

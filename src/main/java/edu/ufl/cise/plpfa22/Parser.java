@@ -198,12 +198,18 @@ public class Parser implements IParser {
 		}
 	}
 
-	private void addExp() throws LexicalException {
-		mulExp();
+	private Expression addExp() throws LexicalException {
+		IToken firsToken = currentToken;
+		Expression left = null;
+		Expression right = null;
+		left = mulExp();
 		while (isKind(Kind.PLUS) || isKind(Kind.MINUS)) {
+			IToken op = currentToken;
 			consume();
-			mulExp();
+			right = mulExp();
+			left = new ExpressionBinary(firstToken, left, op, right);
 		}
+		return left;
 	}
 
 	private Expression mulExp() throws LexicalException {

@@ -11,7 +11,6 @@ public class CompilerComponentFactory {
 	}
 
 	public static IParser getParser(ILexer lexer) {
-		// TODO Auto-generated method stub
 		return new Parser(lexer);
 	}
 }

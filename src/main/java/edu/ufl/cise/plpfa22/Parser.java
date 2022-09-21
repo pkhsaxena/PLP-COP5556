@@ -1,5 +1,6 @@
 package edu.ufl.cise.plpfa22;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import edu.ufl.cise.plpfa22.IToken.Kind;
@@ -15,6 +16,7 @@ import edu.ufl.cise.plpfa22.ast.ExpressionNumLit;
 import edu.ufl.cise.plpfa22.ast.ExpressionStringLit;
 import edu.ufl.cise.plpfa22.ast.Ident;
 import edu.ufl.cise.plpfa22.ast.ProcDec;
+import edu.ufl.cise.plpfa22.ast.Program;
 import edu.ufl.cise.plpfa22.ast.Statement;
 import edu.ufl.cise.plpfa22.ast.StatementAssign;
 import edu.ufl.cise.plpfa22.ast.StatementBlock;
@@ -32,28 +34,31 @@ public class Parser implements IParser {
 	private final ILexer lexer;
 	private IToken currentToken;
 
-	public Parser(ILexer lexer) throws LexicalException {
+	public Parser(ILexer lexer) {
 		this.lexer = lexer;
-		currentToken = lexer.next();
 	}
 
 	@Override
 	public ASTNode parse() throws PLPException {
-		// TODO implement
-		return null;
+		currentToken = lexer.next();
+		return program();
 	}
 
-	private void program() throws LexicalException, SyntaxException {
-		block();
+	private Program program() throws LexicalException, SyntaxException {
+		IToken firstToken = currentToken;
+		Block block = block();
+		Program program = null;
 		if (isKind(Kind.DOT)) {
 			consume();
+			program = new Program(firstToken, block);
 		} else {
 			error();
 		}
+		return program;
 	}
 
 	private Block block() throws LexicalException, SyntaxException {
-		IToken firstToken = currentToken; //TODO: Do we need to keep changing firstToken?
+		IToken firstToken = currentToken; // TODO: Do we need to keep changing firstToken?
 		List<ConstDec> constDecs = new ArrayList<ConstDec>();
 		List<VarDec> varDecs = new ArrayList<VarDec>();
 		List<ProcDec> procDecs = new ArrayList<ProcDec>();
@@ -145,7 +150,7 @@ public class Parser implements IParser {
 		}
 		Statement s = statement();
 
-		return Block(firstToken, constDecs, varDecs, procDecs, s);
+		return new Block(firstToken, constDecs, varDecs, procDecs, s);
 	}
 
 	private Statement statement() throws LexicalException, SyntaxException {
@@ -193,7 +198,7 @@ public class Parser implements IParser {
 			s = new StatementOutput(firstToken, e);
 		}
 		// BEGIN <statement> ( ; <statement> )* END
-		else if (isKind(Kind.KW_BEGIN)) { //TODO: Verify logic.
+		else if (isKind(Kind.KW_BEGIN)) { // TODO: Verify logic.
 			consume();
 			List<Statement> statements = new ArrayList<Statement>();
 			Statement listItem = null;
@@ -214,7 +219,7 @@ public class Parser implements IParser {
 		// IF <expression> THEN <statement>
 		else if (isKind(Kind.KW_IF)) {
 			consume();
-			Expression condition= exp();
+			Expression condition = exp();
 			if (isKind(Kind.KW_THEN)) {
 				consume();
 				Statement statement = statement();

@@ -356,10 +356,8 @@ public class Parser implements IParser {
 		return kind.equals(currentToken.getKind());
 	}
 
-	private IToken consume() throws LexicalException {
-		// TODO: Remove return? Not being used?
+	private void consume() throws LexicalException {
 		currentToken = lexer.next();
-		return currentToken;
 	}
 
 	private void error() throws SyntaxException {

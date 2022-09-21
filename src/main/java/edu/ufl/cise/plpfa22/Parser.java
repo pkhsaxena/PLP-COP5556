@@ -12,6 +12,7 @@ public class Parser implements IParser {
 
 	public Parser(ILexer lexer) {
 		this.lexer = lexer;
+		currentToken = lexer.next();
 	}
 
 	@Override
@@ -20,10 +21,102 @@ public class Parser implements IParser {
 		return null;
 	}
 
+	private void program() throws LexicalException, SyntaxException {
+		block();
+		if(isKind(Kind.DOT)){
+			consume();
+		}
+		else{
+			error();
+		}
+	}
+
+	private void block() throws LexicalException, SyntaxException {
+		while (isKind(Kind.KW_CONST)) {
+			consume();
+			if (isKind(Kind.IDENT)) {
+				consume();
+				if (isKind(Kind.EQ)) {
+					consume();
+					constVal();
+					while (isKind(Kind.COMMA)) {
+						consume();
+						if (isKind(Kind.IDENT)) {
+							consume();
+							if (isKind(Kind.EQ)) {
+								consume();
+								constVal();
+							} else {
+								error();
+							}
+						} else {
+							error();
+						}
+					}
+				} else {
+					error();
+				}
+			} else {
+				error();
+			}
+			if (isKind(Kind.SEMI)) {
+				consume();
+			} else {
+				error();
+			}
+		}
+
+		while (isKind(Kind.KW_VAR)) {
+			consume();
+			if (isKind(Kind.IDENT)) {
+				consume();
+				while (isKind(Kind.COMMA)) {
+					consume();
+					if (isKind(Kind.IDENT)) {
+						consume();
+					} else {
+						error();
+					}
+				}
+			} else {
+				error();
+			}
+			if (isKind(Kind.SEMI)) {
+				consume();
+			} else {
+				error();
+			}
+		}
+
+		while (isKind(Kind.KW_PROCEDURE)) {
+			consume();
+			if (isKind(Kind.IDENT)) {
+				consume();
+				if (isKind(Kind.SEMI)) {
+					consume();
+					block();
+					if (isKind(Kind.SEMI)) {
+						consume();
+					} else {
+						error();
+					}
+				} else {
+					error();
+				}
+			} else {
+				error();
+			}
+		}
+
+		statement();
+	}
+
 	private void statement() throws LexicalException, SyntaxException {
 		// <ident> := <expression
 		if (isKind(Kind.IDENT)) {
+			consume();
 			if (isKind(Kind.ASSIGN)) {
+				consume();
 				exp();
 			} else {
 				error();
@@ -88,24 +181,42 @@ public class Parser implements IParser {
 				error();
 			}
 		}
-
 	}
 
 	private void exp() throws LexicalException {
-		// TODO addExp();
+		addExp();
 		while (isKind(Kind.LT) || isKind(Kind.LE) || isKind(Kind.GT) || isKind(Kind.GE) || isKind(Kind.EQ)
 				|| isKind(Kind.NEQ)) {
 			consume();
+			addExp();
+		}
+	}
 
+	private void addExp() throws LexicalException {
+		mulExp();
+		while (isKind(Kind.PLUS) || isKind(Kind.MINUS)) {
+			consume();
+			mulExp();
+		}
+	}
+
+	private void mulExp() throws LexicalException {
+		primaryExp();
+		while (isKind(Kind.TIMES) || isKind(Kind.DIV) || isKind(Kind.MOD)) {
+			consume();
+			primaryExp();
 		}
 	}
 
 	private void primaryExp() throws LexicalException, SyntaxException {
-		if (isKind(Kind.IDENT) || constVal()) {
-			// cannot let constVal consume token otherwise we won't be able to consume iden
-			// token here without checking token kind again
+		if (isKind(Kind.IDENT)) {
+			// Changed from old format as AST might have issue, will need to check the kind
+			// anyway for AST returns.
 			consume();
+		} else if (isKind(Kind.NUM_LIT) || isKind(Kind.STRING_LIT) || isKind(Kind.BOOLEAN_LIT)) {
+			constVal();
 		} else if (isKind(Kind.LPAREN)) {
+			consume();
 			exp();
 			if (isKind(Kind.RPAREN)) {
 				consume();
@@ -117,12 +228,14 @@ public class Parser implements IParser {
 		}
 	}
 
-	// only returning true or false to allow usage inside if conditions
-	private boolean constVal() throws LexicalException {
-		if (isKind(Kind.NUM_LIT) || isKind(Kind.STRING_LIT) || isKind(Kind.BOOLEAN_LIT)) {
-			return true;
+	private void constVal() throws LexicalException {
+		if (isKind(Kind.NUM_LIT)) {
+			consume();
+		} else if (isKind(Kind.STRING_LIT)) {
+			consume();
+		} else if (isKind(Kind.BOOLEAN_LIT)) {
+			consume();
 		}
-		return false;
 	}
 
 	private boolean isKind(Kind kind) {
@@ -130,6 +243,7 @@ public class Parser implements IParser {
 	}
 
 	private IToken consume() throws LexicalException {
+		// TODO: Remove return? Not being used?
 		currentToken = lexer.next();
 		return currentToken;
 	}
@@ -138,5 +252,4 @@ public class Parser implements IParser {
 		SourceLocation loc = currentToken.getSourceLocation();
 		throw new SyntaxException("Parser encountered an error", loc.line(), loc.column());
 	}
-
 }

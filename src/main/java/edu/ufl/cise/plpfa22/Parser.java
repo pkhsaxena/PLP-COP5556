@@ -1,5 +1,7 @@
 package edu.ufl.cise.plpfa22;
 
+import java.util.List;
+
 import edu.ufl.cise.plpfa22.IToken.Kind;
 import edu.ufl.cise.plpfa22.IToken.SourceLocation;
 import edu.ufl.cise.plpfa22.ast.ASTNode;
@@ -9,6 +11,16 @@ import edu.ufl.cise.plpfa22.ast.ExpressionBooleanLit;
 import edu.ufl.cise.plpfa22.ast.ExpressionIdent;
 import edu.ufl.cise.plpfa22.ast.ExpressionNumLit;
 import edu.ufl.cise.plpfa22.ast.ExpressionStringLit;
+import edu.ufl.cise.plpfa22.ast.Ident;
+import edu.ufl.cise.plpfa22.ast.Statement;
+import edu.ufl.cise.plpfa22.ast.StatementAssign;
+import edu.ufl.cise.plpfa22.ast.StatementBlock;
+import edu.ufl.cise.plpfa22.ast.StatementCall;
+import edu.ufl.cise.plpfa22.ast.StatementEmpty;
+import edu.ufl.cise.plpfa22.ast.StatementIf;
+import edu.ufl.cise.plpfa22.ast.StatementInput;
+import edu.ufl.cise.plpfa22.ast.StatementOutput;
+import edu.ufl.cise.plpfa22.ast.StatementWhile;
 import edu.ufl.cise.plpfa22.ast.SyntaxException;
 
 public class Parser implements IParser {
@@ -16,7 +28,7 @@ public class Parser implements IParser {
 	private final ILexer lexer;
 	private IToken currentToken;
 
-	public Parser(ILexer lexer) {
+	public Parser(ILexer lexer) throws LexicalException {
 		this.lexer = lexer;
 		currentToken = lexer.next();
 	}
@@ -29,10 +41,9 @@ public class Parser implements IParser {
 
 	private void program() throws LexicalException, SyntaxException {
 		block();
-		if(isKind(Kind.DOT)){
+		if (isKind(Kind.DOT)) {
 			consume();
-		}
-		else{
+		} else {
 			error();
 		}
 	}
@@ -117,13 +128,18 @@ public class Parser implements IParser {
 		statement();
 	}
 
-	private void statement() throws LexicalException, SyntaxException {
+	private Statement statement() throws LexicalException, SyntaxException {
+		IToken firstToken = currentToken;
+		Statement s = null;
 		// <ident> := <expression
 		if (isKind(Kind.IDENT)) {
+			Ident var = new Ident(firstToken);
+			Expression e = null;
 			consume();
 			if (isKind(Kind.ASSIGN)) {
 				consume();
-				exp();
+				e = exp();
+				s = new StatementAssign(firstToken, var, e);
 			} else {
 				error();
 			}
@@ -133,6 +149,8 @@ public class Parser implements IParser {
 			consume();
 			if (isKind(Kind.IDENT)) {
 				consume();
+				Ident ident = new Ident(firstToken);
+				s = new StatementCall(firstToken, ident);
 			} else {
 				error();
 			}
@@ -142,6 +160,8 @@ public class Parser implements IParser {
 			consume();
 			if (isKind(Kind.IDENT)) {
 				consume();
+				Ident name = new Ident(firstToken);
+				s = new StatementInput(firstToken, name);
 			} else {
 				error();
 			}
@@ -149,18 +169,24 @@ public class Parser implements IParser {
 		// ! <expression>
 		else if (isKind(Kind.BANG)) {
 			consume();
-			exp();
+			Expression e = exp();
+			s = new StatementOutput(firstToken, e);
 		}
 		// BEGIN <statement> ( ; <statement> )* END
-		else if (isKind(Kind.KW_BEGIN)) {
+		else if (isKind(Kind.KW_BEGIN)) { //TODO: Verify logic.
 			consume();
-			statement();
+			List<Statement> statements = new ArrayList<Statement>();
+			Statement listItem = null;
+			listItem = statement();
+			statements.add(listItem);
 			while (isKind(Kind.SEMI)) {
 				consume();
-				statement();
+				listItem = statement();
+				statements.add(listItem);
 			}
 			if (isKind(Kind.KW_END)) {
 				consume();
+				s = new StatementBlock(firstToken, statements);
 			} else {
 				error();
 			}
@@ -168,10 +194,11 @@ public class Parser implements IParser {
 		// IF <expression> THEN <statement>
 		else if (isKind(Kind.KW_IF)) {
 			consume();
-			exp();
+			Expression condition= exp();
 			if (isKind(Kind.KW_THEN)) {
 				consume();
-				statement();
+				Statement statement = statement();
+				s = new StatementIf(firstToken, condition, statement);
 			} else {
 				error();
 			}
@@ -179,27 +206,39 @@ public class Parser implements IParser {
 		// WHILE <expression> DO <statement>
 		else if (isKind(Kind.KW_WHILE)) {
 			consume();
-			exp();
+			Expression expression = exp();
 			if (isKind(Kind.KW_DO)) {
 				consume();
-				statement();
+				Statement statement = statement();
+				s = new StatementWhile(firstToken, expression, statement);
 			} else {
 				error();
 			}
 		}
+
+		else {
+			s = new StatementEmpty(firstToken);
+		}
+		return s;
 	}
 
-	private void exp() throws LexicalException {
-		addExp();
+	private Expression exp() throws LexicalException, SyntaxException {
+		IToken firsToken = currentToken;
+		Expression left = null;
+		Expression right = null;
+		left = addExp();
 		while (isKind(Kind.LT) || isKind(Kind.LE) || isKind(Kind.GT) || isKind(Kind.GE) || isKind(Kind.EQ)
 				|| isKind(Kind.NEQ)) {
+			IToken op = currentToken;
 			consume();
-			addExp();
+			right = addExp();
+			left = new ExpressionBinary(firsToken, left, op, right);
 		}
+		return left;
 	}
 
-	private Expression addExp() throws LexicalException {
-		IToken firsToken = currentToken;
+	private Expression addExp() throws LexicalException, SyntaxException {
+		IToken firstToken = currentToken;
 		Expression left = null;
 		Expression right = null;
 		left = mulExp();
@@ -212,8 +251,8 @@ public class Parser implements IParser {
 		return left;
 	}
 
-	private Expression mulExp() throws LexicalException {
-		IToken firsToken = currentToken;
+	private Expression mulExp() throws LexicalException, SyntaxException {
+		IToken firstToken = currentToken;
 		Expression left = null;
 		Expression right = null;
 		left = primaryExp();

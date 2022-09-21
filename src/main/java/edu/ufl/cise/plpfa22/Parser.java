@@ -3,6 +3,10 @@ package edu.ufl.cise.plpfa22;
 import edu.ufl.cise.plpfa22.IToken.Kind;
 import edu.ufl.cise.plpfa22.IToken.SourceLocation;
 import edu.ufl.cise.plpfa22.ast.ASTNode;
+import edu.ufl.cise.plpfa22.ast.Expression;
+import edu.ufl.cise.plpfa22.ast.ExpressionBooleanLit;
+import edu.ufl.cise.plpfa22.ast.ExpressionNumLit;
+import edu.ufl.cise.plpfa22.ast.ExpressionStringLit;
 import edu.ufl.cise.plpfa22.ast.SyntaxException;
 
 public class Parser implements IParser {
@@ -228,14 +232,20 @@ public class Parser implements IParser {
 		}
 	}
 
-	private void constVal() throws LexicalException {
+	private Expression constVal() throws LexicalException {
+		IToken firstToken = currentToken;
+		Expression e = null;
 		if (isKind(Kind.NUM_LIT)) {
 			consume();
+			e = new ExpressionNumLit(firstToken);
 		} else if (isKind(Kind.STRING_LIT)) {
 			consume();
+			e = new ExpressionStringLit(firstToken);
 		} else if (isKind(Kind.BOOLEAN_LIT)) {
 			consume();
+			e = new ExpressionBooleanLit(firstToken);
 		}
+		return e;
 	}
 
 	private boolean isKind(Kind kind) {

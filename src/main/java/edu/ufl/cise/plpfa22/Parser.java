@@ -41,7 +41,11 @@ public class Parser implements IParser {
 	@Override
 	public ASTNode parse() throws PLPException {
 		currentToken = lexer.next();
-		return program();
+		ASTNode ret =  program();
+		if (currentToken.getKind() != Kind.EOF) {
+			error();
+		}
+		return ret;
 	}
 
 	private Program program() throws LexicalException, SyntaxException {
@@ -58,7 +62,7 @@ public class Parser implements IParser {
 	}
 
 	private Block block() throws LexicalException, SyntaxException {
-		IToken firstToken = currentToken; // TODO: Do we need to keep changing firstToken?
+		IToken firstToken = currentToken;
 		List<ConstDec> constDecs = new ArrayList<ConstDec>();
 		List<VarDec> varDecs = new ArrayList<VarDec>();
 		List<ProcDec> procDecs = new ArrayList<ProcDec>();

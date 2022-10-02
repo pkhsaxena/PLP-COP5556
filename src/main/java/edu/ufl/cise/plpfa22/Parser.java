@@ -340,7 +340,7 @@ public class Parser implements IParser {
 		return e;
 	}
 
-	private Expression constVal() throws LexicalException {
+	private Expression constVal() throws LexicalException, SyntaxException {
 		IToken firstToken = currentToken;
 		Expression e = null;
 		if (isKind(Kind.NUM_LIT)) {
@@ -352,6 +352,9 @@ public class Parser implements IParser {
 		} else if (isKind(Kind.BOOLEAN_LIT)) {
 			consume();
 			e = new ExpressionBooleanLit(firstToken);
+		}
+		else {
+			error();
 		}
 		return e;
 	}

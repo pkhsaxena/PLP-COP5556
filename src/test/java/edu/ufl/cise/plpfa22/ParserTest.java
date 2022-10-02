@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import edu.ufl.cise.plpfa22.IToken.Kind;
 import edu.ufl.cise.plpfa22.ast.ASTNode;
 import edu.ufl.cise.plpfa22.ast.Block;
 import edu.ufl.cise.plpfa22.ast.ConstDec;
@@ -1170,4 +1171,191 @@ class ParserTest {
 
 
 
+	@Test
+	void testOnlyEOF() throws PLPException {
+		String input = """
+				""";
+		assertThrows(SyntaxException.class, () -> getAST(input));
+	}
+
+	@Test
+	void testConstDec1() throws PLPException {
+		String input = """
+				CONST bol = 92387492;
+				.
+				""";
+		ASTNode ast = getAST(input);
+		assertThat("AST must start w/ program node", ast, instanceOf(Program.class));
+		Block block = ((Program) ast).block;
+		assertThat("program node only contains a block node", block, instanceOf(Block.class));
+		List<ConstDec> consts = block.constDecs;
+		assertThat("constDecs must be of ConstDec type", consts.get(0), instanceOf(ConstDec.class));
+		assertEquals(1, consts.size());
+	}
+
+	@Test
+	void testConstDec2() throws PLPException {
+		String input = """
+				CONST i1 = 92387492, i2 = "strLit";
+				.
+				""";
+		ASTNode ast = getAST(input);
+		assertThat("AST must start w/ program node", ast, instanceOf(Program.class));
+		Block block = ((Program) ast).block;
+		assertThat("program node only contains a block node", block, instanceOf(Block.class));
+		List<ConstDec> consts = block.constDecs;
+		assertThat("constDecs must be of ConstDec type", consts.get(0), instanceOf(ConstDec.class));
+		assertEquals(2, consts.size());
+		assertEquals(92387492, consts.get(0).val);
+		assertEquals("strLit", consts.get(1).val);
+	}
+
+	@Test
+	void testConstDec3() throws PLPException {
+		String input = """
+				CONST i1 = 92387492, i2 = "strLit", i3 = TRUE;
+				.
+				""";
+		ASTNode ast = getAST(input);
+		assertThat("AST must start w/ program node", ast, instanceOf(Program.class));
+		Block block = ((Program) ast).block;
+		assertThat("program node only contains a block node", block, instanceOf(Block.class));
+		List<ConstDec> consts = block.constDecs;
+		assertThat("constDecs must be of ConstDec type", consts.get(0), instanceOf(ConstDec.class));
+		assertEquals(3, consts.size());
+		assertEquals(92387492, consts.get(0).val);
+		assertEquals("strLit", consts.get(1).val);
+		assertEquals(true, consts.get(2).val);
+	}
+
+	@Test
+	void testConstDecException() throws PLPException {
+		//missing semicolon
+		String input = """
+				CONST i1 = 92387492
+				.
+				""";
+		assertThrows(SyntaxException.class, () -> getAST(input));
+	}
+
+	@Test
+	void testVar() throws PLPException {
+		String input = """
+				VAR i1, i2;
+				.
+				""";
+		ASTNode ast = getAST(input);
+		Block block = ((Program) ast).block;
+		assertEquals(0, block.constDecs.size());
+		assertEquals(2, block.varDecs.size());
+	}
+
+	@Test
+	void testStatement() throws PLPException {
+		String input = """
+				iden := i1 <= i2
+				.
+				""";
+		ASTNode ast = getAST(input);
+		Block block = ((Program) ast).block;
+		StatementAssign assign = (StatementAssign) (block.statement);
+		assertEquals("iden", String.valueOf(assign.ident.getText()));
+		ExpressionBinary binary = (ExpressionBinary) assign.expression;
+		assertEquals(Kind.IDENT, binary.getFirstToken().getKind());
+		assertEquals("i1", String.valueOf(binary.getFirstToken().getText()));
+		assertEquals(Kind.LE, binary.op.getKind());
+		assertEquals("i2", String.valueOf(binary.e1.getFirstToken().getText()));
+	}
+
+	@Test
+	void testStatement2() throws PLPException {
+		String input = """
+				iden := 1211 <= i2
+				.
+				""";
+		ASTNode ast = getAST(input);
+		Block block = ((Program) ast).block;
+		StatementAssign assign = (StatementAssign) (block.statement);
+		assertEquals("iden", String.valueOf(assign.ident.getText()));
+		ExpressionBinary binary = (ExpressionBinary) assign.expression;
+		assertEquals(Kind.NUM_LIT, binary.getFirstToken().getKind());
+		assertEquals("1211", String.valueOf(binary.getFirstToken().getText()));
+		assertEquals(Kind.LE, binary.op.getKind());
+		assertEquals("i2", String.valueOf(binary.e1.getFirstToken().getText()));
+	}
+
+	@Test
+	void testStatement3() throws PLPException {
+		String input = """
+				iden := "fj" <= i2
+				.
+				""";
+		ASTNode ast = getAST(input);
+		Block block = ((Program) ast).block;
+		StatementAssign assign = (StatementAssign) (block.statement);
+		assertEquals("iden", String.valueOf(assign.ident.getText()));
+		ExpressionBinary binary = (ExpressionBinary) assign.expression;
+		assertEquals(Kind.STRING_LIT, binary.getFirstToken().getKind());
+		assertEquals("\"fj\"", String.valueOf(binary.getFirstToken().getText()));
+		assertEquals(Kind.LE, binary.op.getKind());
+		assertEquals("i2", String.valueOf(binary.e1.getFirstToken().getText()));
+	}
+
+	@Test
+	void testStatement4() throws PLPException {
+		String input = """
+				iden := FALSE <= i2
+				.
+				""";
+		ASTNode ast = getAST(input);
+		Block block = ((Program) ast).block;
+		StatementAssign assign = (StatementAssign) (block.statement);
+		assertEquals("iden", String.valueOf(assign.ident.getText()));
+		ExpressionBinary binary = (ExpressionBinary) assign.expression;
+		assertEquals(Kind.BOOLEAN_LIT, binary.getFirstToken().getKind());
+		assertEquals("FALSE", String.valueOf(binary.getFirstToken().getText()));
+		assertEquals(Kind.LE, binary.op.getKind());
+		assertEquals("i2", String.valueOf(binary.e1.getFirstToken().getText()));
+	}
+
+	@Test
+	void testStatement5() throws PLPException {
+		String input = """
+				CALL me
+				.
+				""";
+		ASTNode ast = getAST(input);
+		Block block = ((Program) ast).block;
+		StatementCall call = (StatementCall) (block.statement);
+		assertEquals("me", String.valueOf(call.ident.getText()));
+	}
+
+	@Test
+	void testStatement6() throws PLPException {
+		String input = """
+				BEGIN
+					? iden;
+					! 34 # 30
+				END
+				.
+				""";
+		ASTNode ast = getAST(input);
+		Block block = ((Program) ast).block;
+		StatementBlock begin = (StatementBlock) (block.statement);
+		List<Statement> statements = begin.statements;
+		assertEquals(Kind.QUESTION, statements.get(0).firstToken.getKind());
+		StatementInput inp = (StatementInput) statements.get(0);
+		assertEquals("iden", String.valueOf(inp.ident.getText()));
+		StatementOutput out = (StatementOutput) statements.get(1);
+		assertEquals(Kind.BANG, out.getFirstToken().getKind());
+		ExpressionBinary bin = (ExpressionBinary) out.expression;
+		assertEquals(Kind.NUM_LIT, bin.e0.firstToken.getKind());
+		assertEquals("34", String.valueOf(bin.e0.firstToken.getText()));
+		assertEquals(Kind.NEQ, bin.op.getKind());
+		assertEquals("30", String.valueOf(bin.e1.firstToken.getText()));
+	}
+
+	void debug(Object obj) {
+		System.out.println(obj);
+	}
 }

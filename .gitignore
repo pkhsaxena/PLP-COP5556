@@ -57,3 +57,5 @@ build/
 
 ### MAC FILES ###
 *.DS_Store
+*.gitignore
+pom.xml

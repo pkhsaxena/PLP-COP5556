@@ -31,7 +31,6 @@ import edu.ufl.cise.plpfa22.ast.StatementIf;
 import edu.ufl.cise.plpfa22.ast.StatementInput;
 import edu.ufl.cise.plpfa22.ast.StatementOutput;
 import edu.ufl.cise.plpfa22.ast.StatementWhile;
-import edu.ufl.cise.plpfa22.ast.SyntaxException;
 import edu.ufl.cise.plpfa22.ast.VarDec;
 
 class ParserTest {

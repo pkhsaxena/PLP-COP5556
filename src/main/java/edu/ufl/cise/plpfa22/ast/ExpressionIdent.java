@@ -1,5 +1,5 @@
-/**  This code is provided for solely for use of students in the course COP5556 Programming Language Principles at the 
- * University of Florida during the Fall Semester 2022 as part of the course project.  No other use is authorized. 
+/**  This code is provided for solely for use of students in the course COP5556 Programming Language Principles at the
+ * University of Florida during the Fall Semester 2022 as part of the course project.  No other use is authorized.
  */
 
 package edu.ufl.cise.plpfa22.ast;
@@ -8,9 +8,9 @@ import edu.ufl.cise.plpfa22.IToken;
 import edu.ufl.cise.plpfa22.PLPException;
 
 public class ExpressionIdent extends Expression {
-	
+
 	Declaration dec;
-	
+
 	public ExpressionIdent(IToken firstToken) {
 		super(firstToken);
 	}
@@ -20,7 +20,7 @@ public class ExpressionIdent extends Expression {
 		return v.visitExpressionIdent(this, arg);
 	}
 
-	
+
 	@Override
 	public String toString() {
 		return "ExpressionIdent [" + (dec != null ? "dec=" + dec + ", " : "")
@@ -37,7 +37,15 @@ public class ExpressionIdent extends Expression {
 	public void setDec(Declaration dec) {
 		this.dec = dec;
 	}
-	
-	
+
+	int nest;
+
+	public void setNest(int nest) {
+		this.nest = nest;
+	}
+
+	public int getNest() {
+		return nest;
+	}
 
 }

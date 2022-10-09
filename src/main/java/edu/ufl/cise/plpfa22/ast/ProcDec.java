@@ -12,13 +12,11 @@ public class ProcDec extends Declaration {
 	public final IToken ident;
 	public final Block block;
 
-
 	public ProcDec(IToken firstToken, IToken name, Block body) {
 		super(firstToken);
 		this.ident = name;
 		this.block = body;
 	}
-
 
 	@Override
 	public Object visit(ASTVisitor v, Object arg) throws PLPException {
@@ -27,9 +25,18 @@ public class ProcDec extends Declaration {
 
 	@Override
 	public String toString() {
-		return "ProcDec [" + (ident != null ? "ident=" + ident + ", " : "") + (block != null ? "block=" + block : "") + "]";
+		return "ProcDec [" + (ident != null ? "ident=" + ident + ", " : "") + (block != null ? "block=" + block : "")
+				+ "]";
 	}
 
+	int nest;
 
+	public void setNest(int nest) {
+		this.nest = nest;
+	}
+
+	public int getNest() {
+		return nest;
+	}
 
 }

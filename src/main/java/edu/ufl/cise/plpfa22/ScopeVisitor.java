@@ -1,29 +1,71 @@
-package edu.ufl.cise.plpfa22.ast;
+package edu.ufl.cise.plpfa22;
 
-import edu.ufl.cise.plpfa22.PLPException;
+import edu.ufl.cise.plpfa22.ast.ASTVisitor;
+import edu.ufl.cise.plpfa22.ast.Block;
+import edu.ufl.cise.plpfa22.ast.ConstDec;
+import edu.ufl.cise.plpfa22.ast.ExpressionBinary;
+import edu.ufl.cise.plpfa22.ast.ExpressionBooleanLit;
+import edu.ufl.cise.plpfa22.ast.ExpressionIdent;
+import edu.ufl.cise.plpfa22.ast.ExpressionNumLit;
+import edu.ufl.cise.plpfa22.ast.ExpressionStringLit;
+import edu.ufl.cise.plpfa22.ast.Ident;
+import edu.ufl.cise.plpfa22.ast.ProcDec;
+import edu.ufl.cise.plpfa22.ast.Program;
+import edu.ufl.cise.plpfa22.ast.StatementAssign;
+import edu.ufl.cise.plpfa22.ast.StatementBlock;
+import edu.ufl.cise.plpfa22.ast.StatementCall;
+import edu.ufl.cise.plpfa22.ast.StatementEmpty;
+import edu.ufl.cise.plpfa22.ast.StatementIf;
+import edu.ufl.cise.plpfa22.ast.StatementInput;
+import edu.ufl.cise.plpfa22.ast.StatementOutput;
+import edu.ufl.cise.plpfa22.ast.StatementWhile;
+import edu.ufl.cise.plpfa22.ast.VarDec;
+
+import java.util.Stack;
 
 public class ScopeVisitor implements ASTVisitor {
+	int ScopeNumber;
+	int Nest;
+	Stack<Integer> ScopeStack;
+	SymbolTable symbolTable;
+
+	public ScopeVisitor() {
+		ScopeNumber = 0;
+		Nest = 0;
+		ScopeStack = new Stack<>();
+		symbolTable = new SymbolTable();
+	}
 
 	@Override
 	public Object visitBlock(Block block, Object arg) throws PLPException {
-		for(VarDec procDec: block.varDecs) {
-			procDec.visit(this, arg);
+		if (arg.equals(0))
+		{
+			for (ConstDec constDec : block.constDecs) {
+				constDec.visit(this, arg);
+			}
+			for (VarDec varDec : block.varDecs) {
+				varDec.visit(this, arg);
+			}
+			for (ProcDec procDec : block.procedureDecs) {
+				procDec.visit(this, arg);
+			}
 		}
-		for(ConstDec procDec: block.constDecs) {
-			procDec.visit(this, arg);
-		}
-		for(ProcDec procDec: block.procedureDecs) {
-			procDec.visit(this, arg);
-		}
-		for(ProcDec procDec: block.procedureDecs) {
-			procDec.visit(this, arg);
+		else{
+			for (ProcDec procDec : block.procedureDecs) {
+				procDec.visit(this, arg);
+			}
+			block.statement.visit(this, arg);
 		}
 		return null;
 	}
 
 	@Override
 	public Object visitProgram(Program program, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
+		ScopeStack.push(ScopeNumber);
+		program.block.visit(this, 0); // Make the block traverse only proc decs to insert into symbol table
+
+		ScopeNumber = 0; // Reset Scope number
+		program.block.visit(this, 1); // Properly traverse the entire ast
 		return null;
 	}
 
@@ -107,9 +149,16 @@ public class ScopeVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
-		//insert proc iden name into symbol table
-		//in first pass only insert into table
+		// insert proc iden name into symbol table
+		// in first pass only insert into table
+		symbolTable.put(procDec.ident, ScopeStack, procDec, true); //TODO: Change as required
+		procDec.setNest(Nest);
+		ScopeNumber+=1;
+		Nest+=1;
+		ScopeStack.push(ScopeNumber);
 		procDec.block.visit(this, arg);
+		Nest-=1;
+		ScopeStack.pop();
 		return null;
 	}
 

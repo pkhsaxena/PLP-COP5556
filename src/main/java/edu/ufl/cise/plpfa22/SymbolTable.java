@@ -17,8 +17,7 @@ public class SymbolTable {
 
 	public Declaration get(String iden, Stack<Integer> stack) throws ScopeException {
 		if (table.containsKey(iden)) {
-			for (Integer scope : table.get(iden).keySet()) { // Collections.sort(table.get(iden).keySet(),
-																// Collections.reverseOrder())
+			for (Integer scope : table.get(iden).keySet()) {
 				if (stack.contains(scope)) {
 					return table.get(iden).get(scope);
 				}

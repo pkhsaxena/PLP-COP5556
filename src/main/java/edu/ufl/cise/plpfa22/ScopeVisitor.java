@@ -72,7 +72,7 @@ public class ScopeVisitor implements ASTVisitor {
 	@Override
 	public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
 		statementAssign.ident.setNest(Nest);
-		Declaration dec = symbolTable.get(statementAssign.ident.getText(), ScopeStack);
+		Declaration dec = symbolTable.get(new String(statementAssign.ident.getText()), ScopeStack);
 		statementAssign.ident.setDec(dec);
 
 		statementAssign.expression.visit(this, arg);
@@ -82,14 +82,14 @@ public class ScopeVisitor implements ASTVisitor {
 	@Override
 	public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
 		varDec.setNest(Nest);
-		symbolTable.put(varDec.ident.getText(), ScopeStack, varDec, false);
+		symbolTable.put(new String(varDec.ident.getText()), ScopeStack, varDec, false);
 		return null;
 	}
 
 	@Override
 	public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
 		statementCall.ident.setNest(Nest);
-		Declaration dec = symbolTable.get(statementCall.ident.getText(), ScopeStack);
+		Declaration dec = symbolTable.get(new String(statementCall.ident.getText()), ScopeStack);
 		statementCall.ident.setDec(dec);
 		return null;
 	}
@@ -97,7 +97,7 @@ public class ScopeVisitor implements ASTVisitor {
 	@Override
 	public Object visitStatementInput(StatementInput statementInput, Object arg) throws PLPException {
 		statementInput.ident.setNest(Nest);
-		Declaration dec = symbolTable.get(statementInput.ident.getText(), ScopeStack);
+		Declaration dec = symbolTable.get(new String(statementInput.ident.getText()), ScopeStack);
 		statementInput.ident.setDec(dec);
 		return null;
 	}
@@ -132,31 +132,31 @@ public class ScopeVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitExpressionBinary(ExpressionBinary expressionBinary, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
+		expressionBinary.e0.visit(this, arg);
+		expressionBinary.e1.visit(this, arg);
 		return null;
 	}
 
 	@Override
 	public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
+		expressionIdent.setNest(Nest);
+		Declaration dec = symbolTable.get(new String(expressionIdent.firstToken.getText()), ScopeStack);
+		expressionIdent.setDec(dec);
 		return null;
 	}
 
 	@Override
 	public Object visitExpressionNumLit(ExpressionNumLit expressionNumLit, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Object visitExpressionStringLit(ExpressionStringLit expressionStringLit, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public Object visitExpressionBooleanLit(ExpressionBooleanLit expressionBooleanLit, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -164,7 +164,9 @@ public class ScopeVisitor implements ASTVisitor {
 	public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
 		// insert proc iden name into symbol table
 		// in first pass only insert into table
-		symbolTable.put(procDec.ident.getText(), ScopeStack, procDec, true); // TODO: Change as required
+		if (arg.equals(0)) {
+			symbolTable.put(new String(procDec.ident.getText()), ScopeStack, procDec, true); // TODO: Change as required
+		}
 		procDec.setNest(Nest);
 		ScopeNumber += 1;
 		Nest += 1;
@@ -178,7 +180,7 @@ public class ScopeVisitor implements ASTVisitor {
 	@Override
 	public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
 		constDec.setNest(Nest);
-		symbolTable.put(constDec.ident.getText(), ScopeStack, constDec, false);
+		symbolTable.put(new String(constDec.ident.getText()), ScopeStack, constDec, false);
 		return null;
 	}
 
@@ -189,7 +191,9 @@ public class ScopeVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitIdent(Ident ident, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
+		ident.setNest(Nest);
+		Declaration dec = symbolTable.get(new String(ident.firstToken.getText()), ScopeStack);
+		ident.setDec(dec);
 		return null;
 	}
 

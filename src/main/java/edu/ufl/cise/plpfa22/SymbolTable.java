@@ -31,7 +31,7 @@ public class SymbolTable {
 		//TODO: What level is Procedures at?
 		//TODO: Can we have 2 procedures of same name?
 		//TODO: Where to find procedure if not at level 0?
-		//TODO: If multiple procedures, which gets higher prefernece?
+		//TODO: If multiple procedures, which gets higher preference?
 		if (table.containsKey(iden)) {
 			if (!proc) {
 				if (table.get(iden).containsKey(stack.peek())) {

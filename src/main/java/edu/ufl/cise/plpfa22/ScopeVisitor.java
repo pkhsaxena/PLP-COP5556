@@ -151,7 +151,7 @@ public class ScopeVisitor implements ASTVisitor {
 	public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
 		// insert proc iden name into symbol table
 		// in first pass only insert into table
-		symbolTable.put(procDec.ident, ScopeStack, procDec, true); //TODO: Change as required
+		symbolTable.put(procDec.ident.getText(), ScopeStack, procDec, true); //TODO: Change as required
 		procDec.setNest(Nest);
 		ScopeNumber+=1;
 		Nest+=1;
@@ -164,7 +164,8 @@ public class ScopeVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
+		constDec.setNest(Nest);
+		symbolTable.put(constDec.ident.getText(), ScopeStack, constDec, false);
 		return null;
 	}
 

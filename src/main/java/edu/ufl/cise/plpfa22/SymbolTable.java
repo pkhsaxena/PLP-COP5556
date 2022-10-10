@@ -28,10 +28,10 @@ public class SymbolTable {
 	}
 
 	public void put(String iden, Stack<Integer> stack, Declaration dec, Boolean proc) throws ScopeException {
-		//TODO: What level is Procedures at?
-		//TODO: Can we have 2 procedures of same name?
-		//TODO: Where to find procedure if not at level 0?
-		//TODO: If multiple procedures, which gets higher preference?
+		// TODO: What level is Procedures at?
+		// TODO: Can we have 2 procedures of same name?
+		// TODO: Where to find procedure if not at level 0?
+		// TODO: If multiple procedures, which gets higher preference?
 		if (table.containsKey(iden)) {
 			if (!proc) {
 				if (table.get(iden).containsKey(stack.peek())) {
@@ -48,7 +48,11 @@ public class SymbolTable {
 			}
 		} else {
 			table.put(iden, new TreeMap<>(Collections.reverseOrder()));
-			table.get(iden).put(stack.peek(), dec);
+			if (!proc) {
+				table.get(iden).put(stack.peek(), dec);
+			} else {
+				table.get(iden).put(0, dec);
+			}
 		}
 	}
 }

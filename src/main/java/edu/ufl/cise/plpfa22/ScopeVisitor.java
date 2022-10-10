@@ -77,7 +77,8 @@ public class ScopeVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
+		varDec.setNest(Nest);
+		symbolTable.put(varDec.ident.getText(), ScopeStack, varDec, false);
 		return null;
 	}
 

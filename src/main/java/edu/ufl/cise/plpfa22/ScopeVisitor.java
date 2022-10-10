@@ -82,7 +82,7 @@ public class ScopeVisitor implements ASTVisitor {
 	@Override
 	public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
 		varDec.setNest(Nest);
-		symbolTable.put(new String(varDec.ident.getText()), ScopeStack, varDec, false);
+		symbolTable.put(new String(varDec.ident.getText()), ScopeStack, varDec);
 		return null;
 	}
 
@@ -165,7 +165,7 @@ public class ScopeVisitor implements ASTVisitor {
 		// insert proc iden name into symbol table
 		// in first pass only insert into table
 		if (arg.equals(0)) {
-			symbolTable.put(new String(procDec.ident.getText()), ScopeStack, procDec, true); // TODO: Change as required
+			symbolTable.put(new String(procDec.ident.getText()), ScopeStack, procDec);
 		}
 		procDec.setNest(Nest);
 		ScopeNumber += 1;
@@ -180,7 +180,7 @@ public class ScopeVisitor implements ASTVisitor {
 	@Override
 	public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
 		constDec.setNest(Nest);
-		symbolTable.put(new String(constDec.ident.getText()), ScopeStack, constDec, false);
+		symbolTable.put(new String(constDec.ident.getText()), ScopeStack, constDec);
 		return null;
 	}
 

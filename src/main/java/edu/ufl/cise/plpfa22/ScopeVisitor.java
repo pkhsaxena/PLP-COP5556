@@ -3,6 +3,7 @@ package edu.ufl.cise.plpfa22;
 import edu.ufl.cise.plpfa22.ast.ASTVisitor;
 import edu.ufl.cise.plpfa22.ast.Block;
 import edu.ufl.cise.plpfa22.ast.ConstDec;
+import edu.ufl.cise.plpfa22.ast.Declaration;
 import edu.ufl.cise.plpfa22.ast.ExpressionBinary;
 import edu.ufl.cise.plpfa22.ast.ExpressionBooleanLit;
 import edu.ufl.cise.plpfa22.ast.ExpressionIdent;
@@ -11,6 +12,7 @@ import edu.ufl.cise.plpfa22.ast.ExpressionStringLit;
 import edu.ufl.cise.plpfa22.ast.Ident;
 import edu.ufl.cise.plpfa22.ast.ProcDec;
 import edu.ufl.cise.plpfa22.ast.Program;
+import edu.ufl.cise.plpfa22.ast.Statement;
 import edu.ufl.cise.plpfa22.ast.StatementAssign;
 import edu.ufl.cise.plpfa22.ast.StatementBlock;
 import edu.ufl.cise.plpfa22.ast.StatementCall;
@@ -38,8 +40,7 @@ public class ScopeVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitBlock(Block block, Object arg) throws PLPException {
-		if (arg.equals(0))
-		{
+		if (arg.equals(0)) {
 			for (ConstDec constDec : block.constDecs) {
 				constDec.visit(this, arg);
 			}
@@ -49,8 +50,7 @@ public class ScopeVisitor implements ASTVisitor {
 			for (ProcDec procDec : block.procedureDecs) {
 				procDec.visit(this, arg);
 			}
-		}
-		else{
+		} else {
 			for (ProcDec procDec : block.procedureDecs) {
 				procDec.visit(this, arg);
 			}
@@ -71,7 +71,11 @@ public class ScopeVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
+		statementAssign.ident.setNest(Nest);
+		Declaration dec = symbolTable.get(statementAssign.ident.getText(), ScopeStack);
+		statementAssign.ident.setDec(dec);
+
+		statementAssign.expression.visit(this, arg);
 		return null;
 	}
 
@@ -84,37 +88,45 @@ public class ScopeVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
+		statementCall.ident.setNest(Nest);
+		Declaration dec = symbolTable.get(statementCall.ident.getText(), ScopeStack);
+		statementCall.ident.setDec(dec);
 		return null;
 	}
 
 	@Override
 	public Object visitStatementInput(StatementInput statementInput, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
+		statementInput.ident.setNest(Nest);
+		Declaration dec = symbolTable.get(statementInput.ident.getText(), ScopeStack);
+		statementInput.ident.setDec(dec);
 		return null;
 	}
 
 	@Override
 	public Object visitStatementOutput(StatementOutput statementOutput, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
+		statementOutput.expression.visit(this, arg);
 		return null;
 	}
 
 	@Override
 	public Object visitStatementBlock(StatementBlock statementBlock, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
+		for (Statement s : statementBlock.statements) {
+			s.visit(this, arg);
+		}
 		return null;
 	}
 
 	@Override
 	public Object visitStatementIf(StatementIf statementIf, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
+		statementIf.expression.visit(this, arg);
+		statementIf.statement.visit(this, arg);
 		return null;
 	}
 
 	@Override
 	public Object visitStatementWhile(StatementWhile statementWhile, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
+		statementWhile.expression.visit(this, arg);
+		statementWhile.statement.visit(this, arg);
 		return null;
 	}
 
@@ -152,13 +164,13 @@ public class ScopeVisitor implements ASTVisitor {
 	public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
 		// insert proc iden name into symbol table
 		// in first pass only insert into table
-		symbolTable.put(procDec.ident.getText(), ScopeStack, procDec, true); //TODO: Change as required
+		symbolTable.put(procDec.ident.getText(), ScopeStack, procDec, true); // TODO: Change as required
 		procDec.setNest(Nest);
-		ScopeNumber+=1;
-		Nest+=1;
+		ScopeNumber += 1;
+		Nest += 1;
 		ScopeStack.push(ScopeNumber);
 		procDec.block.visit(this, arg);
-		Nest-=1;
+		Nest -= 1;
 		ScopeStack.pop();
 		return null;
 	}
@@ -172,7 +184,6 @@ public class ScopeVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitStatementEmpty(StatementEmpty statementEmpty, Object arg) throws PLPException {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

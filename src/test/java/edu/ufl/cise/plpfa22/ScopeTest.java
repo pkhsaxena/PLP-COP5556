@@ -39,7 +39,6 @@ class ScopeTest {
 		IParser parser = CompilerComponentFactory.getParser(CompilerComponentFactory.getLexer(input));
 		ASTNode ast = parser.parse();
 		ASTVisitor scopes = CompilerComponentFactory.getScopeVisitor();
-		CompilerComponentFactory.getScopeVisitor();
 		ast.visit(scopes, null);
 		return ast;
 	}

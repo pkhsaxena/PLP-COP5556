@@ -1,5 +1,7 @@
 package edu.ufl.cise.plpfa22;
 
+import java.util.Stack;
+
 import edu.ufl.cise.plpfa22.ast.ASTVisitor;
 import edu.ufl.cise.plpfa22.ast.Block;
 import edu.ufl.cise.plpfa22.ast.ConstDec;
@@ -23,13 +25,11 @@ import edu.ufl.cise.plpfa22.ast.StatementOutput;
 import edu.ufl.cise.plpfa22.ast.StatementWhile;
 import edu.ufl.cise.plpfa22.ast.VarDec;
 
-import java.util.Stack;
-
 public class ScopeVisitor implements ASTVisitor {
 	int ScopeNumber;
 	int Nest;
 	Stack<Integer> ScopeStack;
-	SymbolTable symbolTable;
+	static SymbolTable symbolTable;
 
 	public ScopeVisitor() {
 		ScopeNumber = 0;

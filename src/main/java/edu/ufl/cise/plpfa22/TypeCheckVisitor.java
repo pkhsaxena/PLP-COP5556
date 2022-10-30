@@ -79,6 +79,9 @@ public class TypeCheckVisitor implements ASTVisitor {
 		statementAssign.expression.visit(this, arg);
 		Declaration dec = symbolTable.get(new String(statementAssign.ident.getText()), ScopeStack);
 		if (arg.equals(0)) {
+			if (dec instanceof ConstDec || dec instanceof ProcDec) {
+				throw new TypeCheckException("ASSIGN TO PROC OR CONST", dec.getSourceLocation());
+			}
 			// check if the identifier already has a type
 			if (dec.getType() == null && statementAssign.expression.getType() != null) {
 				dec.setType(statementAssign.expression.getType());
@@ -228,14 +231,12 @@ public class TypeCheckVisitor implements ASTVisitor {
 					e0_Type = e1_Type;
 					flip();
 				}
-				if(e0_Type == null && expressionBinary.getType() != null)
-				{
+				if (e0_Type == null && expressionBinary.getType() != null) {
 					e0_Type = expressionBinary.getType();
 					expressionBinary.e0.setType(e0_Type);
 					flip();
 				}
-				if(e1_Type == null && expressionBinary.getType() != null)
-				{
+				if (e1_Type == null && expressionBinary.getType() != null) {
 					e1_Type = expressionBinary.getType();
 					expressionBinary.e1.setType(e1_Type);
 					flip();
@@ -286,14 +287,12 @@ public class TypeCheckVisitor implements ASTVisitor {
 					e0_Type = e1_Type;
 					flip();
 				}
-				if(e0_Type == null && expressionBinary.getType() != null)
-				{
+				if (e0_Type == null && expressionBinary.getType() != null) {
 					e0_Type = expressionBinary.getType();
 					expressionBinary.e0.setType(e0_Type);
 					flip();
 				}
-				if(e1_Type == null && expressionBinary.getType() != null)
-				{
+				if (e1_Type == null && expressionBinary.getType() != null) {
 					e1_Type = expressionBinary.getType();
 					expressionBinary.e1.setType(e1_Type);
 					flip();

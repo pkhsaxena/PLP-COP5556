@@ -77,7 +77,8 @@ public class TypeCheckVisitor implements ASTVisitor {
 	public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
 		// set the type of the expression
 		statementAssign.expression.visit(this, arg);
-		Declaration dec = symbolTable.get(new String(statementAssign.ident.getText()), ScopeStack);
+//		Declaration dec = symbolTable.get(new String(statementAssign.ident.getText()), ScopeStack);
+		Declaration dec = statementAssign.ident.getDec();
 		if (arg.equals(0)) {
 			if (dec instanceof ConstDec || dec instanceof ProcDec) {
 				throw new TypeCheckException("ASSIGN TO PROC OR CONST", dec.getSourceLocation());
@@ -111,7 +112,8 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
-		Declaration dec = symbolTable.get(new String(statementCall.ident.getText()), ScopeStack);
+//		Declaration dec = symbolTable.get(new String(statementCall.ident.getText()), ScopeStack);
+		Declaration dec = statementCall.ident.getDec();
 		if (arg.equals(0)) {
 			if (dec.getType() == null) {
 				dec.setType(Type.PROCEDURE);
@@ -129,7 +131,8 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitStatementInput(StatementInput statementInput, Object arg) throws PLPException {
-		Declaration dec = symbolTable.get(new String(statementInput.ident.getText()), ScopeStack);
+//		Declaration dec = symbolTable.get(new String(statementInput.ident.getText()), ScopeStack);
+		Declaration dec = statementInput.ident.getDec();
 		if (arg.equals(0)) {
 			if (dec.getType() == Type.PROCEDURE) {
 				error(Set.of(Type.NUMBER, Type.STRING, Type.BOOLEAN), dec.getType(),
@@ -340,7 +343,8 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
-		Declaration dec = symbolTable.get(new String(expressionIdent.firstToken.getText()), ScopeStack);
+//		Declaration dec = symbolTable.get(new String(expressionIdent.firstToken.getText()), ScopeStack);
+		Declaration dec = expressionIdent.getDec();
 		if (arg.equals(0)) {
 			if (dec.getType() == null && expressionIdent.getType() != null) {
 				dec.setType(expressionIdent.getType());

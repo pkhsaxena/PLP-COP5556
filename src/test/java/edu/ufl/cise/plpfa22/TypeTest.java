@@ -556,4 +556,69 @@ class TypeTest {
 				""";
 		runTest(input, testInfo);
 	}
+
+	@Test
+	void test37(TestInfo testInfo) throws PLPException {
+		String input = """
+				CONST d=2 , e=34, f=34, g="TRUE";
+				VAR a,b,c;
+				IF b<=c
+				THEN
+				    BEGIN
+				        a:=g+a;
+				        IF c>=d
+				        THEN
+				            BEGIN
+				                b:="String"+"String";
+				                IF d#e
+				                THEN
+				                    IF e=f
+				                    THEN
+				                        BEGIN
+				                            //g:=TRUE;
+				                            !f
+				                        END
+				            END
+				    END
+				.
+				""";
+		runTest(input, testInfo);
+	}
+
+	@Test
+	void test39(TestInfo testInfo) throws PLPException {
+		String input = """
+				CONST a="String1", b=34;
+				VAR x,y,z;
+				BEGIN
+				    y:="String2";
+				    x:=y;
+				    z:=(b>0);
+				    ?b;
+				    ?x;
+				    ?z
+				END
+				.
+				""";
+		runTest(input, testInfo);
+	}
+
+	@Test
+	void test59(TestInfo testInfo) throws PLPException {
+		String input = """
+				CONST a=0,c=TRUE,e="STRING";
+				VAR b,d,f;
+				IF a=0
+				THEN
+				    BEGIN
+				        b:=b+a;
+				        d:=(b*b*b*b >= (f%2));
+				        f:="HELLO";
+				        !e; !d; !b
+				    END
+				.
+				""";
+		runTest(input, testInfo);
+	}
+
 }

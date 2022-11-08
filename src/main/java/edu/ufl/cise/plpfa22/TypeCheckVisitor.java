@@ -133,6 +133,9 @@ public class TypeCheckVisitor implements ASTVisitor {
 	public Object visitStatementInput(StatementInput statementInput, Object arg) throws PLPException {
 //		Declaration dec = symbolTable.get(new String(statementInput.ident.getText()), ScopeStack);
 		Declaration dec = statementInput.ident.getDec();
+		if(dec instanceof ConstDec) {
+			throw new TypeCheckException("Cannot take input in a constant variable");
+		}
 		if (arg.equals(0)) {
 			if (dec.getType() == Type.PROCEDURE) {
 				error(Set.of(Type.NUMBER, Type.STRING, Type.BOOLEAN), dec.getType(),
@@ -332,6 +335,14 @@ public class TypeCheckVisitor implements ASTVisitor {
 					expressionBinary.setType(Type.BOOLEAN);
 					flip();
 				}
+			}
+			if (expressionBinary.e0 instanceof ExpressionIdent && symbolTable
+					.get(new String(expressionBinary.e0.firstToken.getText()), ScopeStack) instanceof Declaration) {
+				symbolTable.get(new String(expressionBinary.e0.firstToken.getText()), ScopeStack).setType(e0_Type);
+			}
+			if (expressionBinary.e1 instanceof ExpressionIdent && symbolTable
+					.get(new String(expressionBinary.e0.firstToken.getText()), ScopeStack) instanceof Declaration) {
+				symbolTable.get(new String(expressionBinary.e1.firstToken.getText()), ScopeStack).setType(e1_Type);
 			}
 		} else if (arg.equals(1)) {
 			if (expressionBinary.getType() == null) {

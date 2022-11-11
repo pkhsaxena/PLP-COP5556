@@ -16,6 +16,7 @@ import edu.ufl.cise.plpfa22.ast.ExpressionStringLit;
 import edu.ufl.cise.plpfa22.ast.Ident;
 import edu.ufl.cise.plpfa22.ast.ProcDec;
 import edu.ufl.cise.plpfa22.ast.Program;
+import edu.ufl.cise.plpfa22.ast.Statement;
 import edu.ufl.cise.plpfa22.ast.StatementAssign;
 import edu.ufl.cise.plpfa22.ast.StatementBlock;
 import edu.ufl.cise.plpfa22.ast.StatementCall;
@@ -294,10 +295,21 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 						mv.visitInsn(ICONST_0); // Load False -> 0
 						mv.visitLabel(labelPostNumEq); // Goto the position after loading, ie GOTO location.
 					}
+					default -> {
+						throw new IllegalStateException("code gen bug in visitExpressionBinary BOOLEAN");
+					}
 				}
 			}
 			case STRING -> {
-				throw new UnsupportedOperationException();
+				expressionBinary.e0.visit(this, arg);
+				expressionBinary.e1.visit(this, arg);
+				switch (op) {
+					case PLUS -> {
+						String concatSig = "(Ljava/lang/String;)Ljava/lang/String;";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "concat", concatSig, false);
+					}
+				}
+				;
 			}
 			default -> {
 				throw new IllegalStateException("code gen bug in visitExpressionBinary");

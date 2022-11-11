@@ -301,18 +301,22 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 				}
 			}
 			case STRING -> {
-				expressionBinary.e0.visit(this, arg);
-				expressionBinary.e1.visit(this, arg);
 				switch (op) {
 					case PLUS -> {
+						expressionBinary.e0.visit(this, arg);
+						expressionBinary.e1.visit(this, arg);
 						String concatSig = "(Ljava/lang/String;)Ljava/lang/String;";
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "concat", concatSig, false);
 					}
 					case EQ -> {
+						expressionBinary.e0.visit(this, arg);
+						expressionBinary.e1.visit(this, arg);
 						String equalsSig = "(Ljava/lang/Object;)Z";
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", equalsSig, false);
 					}
 					case NEQ -> {
+						expressionBinary.e0.visit(this, arg);
+						expressionBinary.e1.visit(this, arg);
 						String equalsSig = "(Ljava/lang/Object;)Z";
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", equalsSig, false);
 
@@ -324,6 +328,28 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 						mv.visitLabel(labelNumEqFalseBr); // If we are not going to the GOTO, visit the label
 						mv.visitInsn(ICONST_0); // Load False -> 0
 						mv.visitLabel(labelPostNumEq); // Goto the position after loading, ie GOTO location.
+					}
+					case LT -> {
+						expressionBinary.e1.visit(this, arg);
+						expressionBinary.e0.visit(this, arg);
+						String startsWithSig = "(Ljava/lang/String;)Z";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", startsWithSig, false);
+
+						expressionBinary.e1.visit(this, arg);
+						expressionBinary.e0.visit(this, arg);
+
+						String equalsSig = "(Ljava/lang/Object;)Z";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", equalsSig, false);
+
+						Label labelNumEqFalseBr = new Label();
+						mv.visitJumpInsn(IFNE, labelNumEqFalseBr); // If val != 0, jump ahead to labelNumEqFalseBr (ie if equals method returned true(1))
+						mv.visitInsn(ICONST_1); // a != b load True -> 1 (neq)
+						Label labelPostNumEq = new Label(); // If a != b (val==0) we need to skip the next section
+						mv.visitJumpInsn(GOTO, labelPostNumEq); // Skip next section of loading False -> 0
+						mv.visitLabel(labelNumEqFalseBr); // If we are not going to the GOTO, visit the label
+						mv.visitInsn(ICONST_0); // Load False -> 0
+						mv.visitLabel(labelPostNumEq); // Goto the position after loading, ie GOTO location.
+						mv.visitInsn(IAND);
 					}
 				}
 				;

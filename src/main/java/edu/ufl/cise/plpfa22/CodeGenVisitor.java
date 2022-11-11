@@ -308,6 +308,23 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 						String concatSig = "(Ljava/lang/String;)Ljava/lang/String;";
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "concat", concatSig, false);
 					}
+					case EQ -> {
+						String equalsSig = "(Ljava/lang/Object;)Z";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", equalsSig, false);
+					}
+					case NEQ -> {
+						String equalsSig = "(Ljava/lang/Object;)Z";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", equalsSig, false);
+
+						Label labelNumEqFalseBr = new Label();
+						mv.visitJumpInsn(IFNE, labelNumEqFalseBr); // If val != 0, jump ahead to labelNumEqFalseBr (ie if equals method returned true(1))
+						mv.visitInsn(ICONST_1); // a != b load True -> 1 (neq)
+						Label labelPostNumEq = new Label(); // If a != b (val==0) we need to skip the next section
+						mv.visitJumpInsn(GOTO, labelPostNumEq); // Skip next section of loading False -> 0
+						mv.visitLabel(labelNumEqFalseBr); // If we are not going to the GOTO, visit the label
+						mv.visitInsn(ICONST_0); // Load False -> 0
+						mv.visitLabel(labelPostNumEq); // Goto the position after loading, ie GOTO location.
+					}
 				}
 				;
 			}

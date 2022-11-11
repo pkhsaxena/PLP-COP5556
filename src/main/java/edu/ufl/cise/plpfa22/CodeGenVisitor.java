@@ -158,28 +158,63 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					case MOD -> mv.visitInsn(IREM);
 					case EQ -> {
 						Label labelNumEqFalseBr = new Label();
-						mv.visitJumpInsn(IF_ICMPNE, labelNumEqFalseBr);
-						mv.visitInsn(ICONST_1);
-						Label labelPostNumEq = new Label();
-						mv.visitJumpInsn(GOTO, labelPostNumEq);
-						mv.visitLabel(labelNumEqFalseBr);
-						mv.visitInsn(ICONST_0);
-						mv.visitLabel(labelPostNumEq);
+						mv.visitJumpInsn(IF_ICMPNE, labelNumEqFalseBr); // If they are not equal, jump ahead to labelNumEqFalseBr
+						mv.visitInsn(ICONST_1); // They are equal load True -> 1
+						Label labelPostNumEq = new Label(); // If they were equal we need to skip the next section
+						mv.visitJumpInsn(GOTO, labelPostNumEq); // Skip next section of loading False -> 0
+						mv.visitLabel(labelNumEqFalseBr); // If we are not going to the GOTO, visit the label
+						mv.visitInsn(ICONST_0); // Load False -> 0
+						mv.visitLabel(labelPostNumEq); // Goto the position after loading, ie GOTO location.
 					}
 					case NEQ -> {
-						throw new UnsupportedOperationException();
+						Label labelNumEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ICMPEQ, labelNumEqFalseBr); // If they are equal, jump ahead to labelNumEqFalseBr
+						mv.visitInsn(ICONST_1); // They are not equal load True -> 1
+						Label labelPostNumEq = new Label(); // If they were not equal we need to skip the next section
+						mv.visitJumpInsn(GOTO, labelPostNumEq); // Skip next section of loading False -> 0
+						mv.visitLabel(labelNumEqFalseBr); // If we are not going to the GOTO, visit the label
+						mv.visitInsn(ICONST_0); // Load False -> 0
+						mv.visitLabel(labelPostNumEq); // Goto the position after loading, ie GOTO location.
 					}
 					case LT -> {
-						throw new UnsupportedOperationException();
+						Label labelNumEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ICMPGE, labelNumEqFalseBr); // If a >= b, jump ahead to labelNumEqFalseBr
+						mv.visitInsn(ICONST_1); // a < b load True -> 1
+						Label labelPostNumEq = new Label(); // If a < b we need to skip the next section
+						mv.visitJumpInsn(GOTO, labelPostNumEq); // Skip next section of loading False -> 0
+						mv.visitLabel(labelNumEqFalseBr); // If we are not going to the GOTO, visit the label
+						mv.visitInsn(ICONST_0); // Load False -> 0
+						mv.visitLabel(labelPostNumEq); // Goto the position after loading, ie GOTO location.
 					}
 					case LE -> {
-						throw new UnsupportedOperationException();
+						Label labelNumEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ICMPGT, labelNumEqFalseBr); // If a > b, jump ahead to labelNumEqFalseBr
+						mv.visitInsn(ICONST_1); // a <= b load True -> 1
+						Label labelPostNumEq = new Label(); // If a <= b we need to skip the next section
+						mv.visitJumpInsn(GOTO, labelPostNumEq); // Skip next section of loading False -> 0
+						mv.visitLabel(labelNumEqFalseBr); // If we are not going to the GOTO, visit the label
+						mv.visitInsn(ICONST_0); // Load False -> 0
+						mv.visitLabel(labelPostNumEq); // Goto the position after loading, ie GOTO location.
 					}
 					case GT -> {
-						throw new UnsupportedOperationException();
+						Label labelNumEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ICMPLE, labelNumEqFalseBr); // If a <= b, jump ahead to labelNumEqFalseBr
+						mv.visitInsn(ICONST_1); // a > b load True -> 1
+						Label labelPostNumEq = new Label(); // If a > b we need to skip the next section
+						mv.visitJumpInsn(GOTO, labelPostNumEq); // Skip next section of loading False -> 0
+						mv.visitLabel(labelNumEqFalseBr); // If we are not going to the GOTO, visit the label
+						mv.visitInsn(ICONST_0); // Load False -> 0
+						mv.visitLabel(labelPostNumEq); // Goto the position after loading, ie GOTO location.
 					}
 					case GE -> {
-						throw new UnsupportedOperationException();
+						Label labelNumEqFalseBr = new Label();
+						mv.visitJumpInsn(IF_ICMPLT, labelNumEqFalseBr); // If a < b, jump ahead to labelNumEqFalseBr
+						mv.visitInsn(ICONST_1); // a >= b load True -> 1
+						Label labelPostNumEq = new Label(); // If a >= b we need to skip the next section
+						mv.visitJumpInsn(GOTO, labelPostNumEq); // Skip next section of loading False -> 0
+						mv.visitLabel(labelNumEqFalseBr); // If we are not going to the GOTO, visit the label
+						mv.visitInsn(ICONST_0); // Load False -> 0
+						mv.visitLabel(labelPostNumEq); // Goto the position after loading, ie GOTO location.
 					}
 					default -> {
 						throw new IllegalStateException("code gen bug in visitExpressionBinary NUMBER");

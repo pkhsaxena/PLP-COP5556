@@ -4,8 +4,9 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import edu.ufl.cise.plpfa22.ast.ASTVisitor;
+
 import edu.ufl.cise.plpfa22.IToken.Kind;
+import edu.ufl.cise.plpfa22.ast.ASTVisitor;
 import edu.ufl.cise.plpfa22.ast.Block;
 import edu.ufl.cise.plpfa22.ast.ConstDec;
 import edu.ufl.cise.plpfa22.ast.ExpressionBinary;
@@ -79,7 +80,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// but you will be able to print it so you can see the instructions. After
 		// fixing,
 		// restore ClassWriter.COMPUTE_FRAMES
-		classWriter.visit(V18, ACC_PUBLIC | ACC_SUPER, fullyQualifiedClassName, null, "java/lang/Object", null);
+		classWriter.visit(V17, ACC_PUBLIC | ACC_SUPER, fullyQualifiedClassName, null, "java/lang/Object", null);
 
 		// get a method visitor for the main method.
 		MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC | ACC_STATIC, "main", "([Ljava/lang/String;)V",
@@ -356,6 +357,75 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 						mv.visitInsn(ICONST_0); // Load False -> 0
 						mv.visitLabel(labelPostNumEq); // Goto the position after loading, ie GOTO location.
 						mv.visitInsn(IAND);
+					}
+					case LE -> {
+						expressionBinary.e1.visit(this, arg);
+						expressionBinary.e0.visit(this, arg);
+						String startsWithSig = "(Ljava/lang/String;)Z";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", startsWithSig, false);
+
+						expressionBinary.e1.visit(this, arg);
+						expressionBinary.e0.visit(this, arg);
+
+						String equalsSig = "(Ljava/lang/Object;)Z";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", equalsSig, false);
+
+						Label labelNumEqFalseBr = new Label();
+						mv.visitJumpInsn(IFEQ, labelNumEqFalseBr); // If val != 0, jump ahead to labelNumEqFalseBr (ie if equals method returned true(1))
+						mv.visitInsn(ICONST_1); // a != b load True -> 1 (neq)
+						Label labelPostNumEq = new Label(); // If a != b (val==0) we need to skip the next section
+						mv.visitJumpInsn(GOTO, labelPostNumEq); // Skip next section of loading False -> 0
+						mv.visitLabel(labelNumEqFalseBr); // If we are not going to the GOTO, visit the label
+						mv.visitInsn(ICONST_0); // Load False -> 0
+						mv.visitLabel(labelPostNumEq); // Goto the position after loading, ie GOTO location.
+						mv.visitInsn(IOR);
+					}
+					case GT -> {
+						expressionBinary.e0.visit(this, arg);
+						expressionBinary.e1.visit(this, arg);
+						String endsWithSig = "(Ljava/lang/String;)Z";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "endsWith", endsWithSig, false);
+
+						expressionBinary.e1.visit(this, arg);
+						expressionBinary.e0.visit(this, arg);
+
+						String equalsSig = "(Ljava/lang/Object;)Z";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", equalsSig, false);
+
+						Label labelNumEqFalseBr = new Label();
+						mv.visitJumpInsn(IFNE, labelNumEqFalseBr); // If val != 0, jump ahead to labelNumEqFalseBr (ie if equals method returned true(1))
+						mv.visitInsn(ICONST_1); // a != b load True -> 1 (neq)
+						Label labelPostNumEq = new Label(); // If a != b (val==0) we need to skip the next section
+						mv.visitJumpInsn(GOTO, labelPostNumEq); // Skip next section of loading False -> 0
+						mv.visitLabel(labelNumEqFalseBr); // If we are not going to the GOTO, visit the label
+						mv.visitInsn(ICONST_0); // Load False -> 0
+						mv.visitLabel(labelPostNumEq); // Goto the position after loading, ie GOTO location.
+						mv.visitInsn(IAND);
+					}
+					case GE -> {
+						expressionBinary.e0.visit(this, arg);
+						expressionBinary.e1.visit(this, arg);
+						String endsWithSig = "(Ljava/lang/String;)Z";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "endsWith", endsWithSig, false);
+
+						expressionBinary.e1.visit(this, arg);
+						expressionBinary.e0.visit(this, arg);
+
+						String equalsSig = "(Ljava/lang/Object;)Z";
+						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", equalsSig, false);
+
+						Label labelNumEqFalseBr = new Label();
+						mv.visitJumpInsn(IFEQ, labelNumEqFalseBr); // If val != 0, jump ahead to labelNumEqFalseBr (ie if equals method returned true(1))
+						mv.visitInsn(ICONST_1); // a != b load True -> 1 (neq)
+						Label labelPostNumEq = new Label(); // If a != b (val==0) we need to skip the next section
+						mv.visitJumpInsn(GOTO, labelPostNumEq); // Skip next section of loading False -> 0
+						mv.visitLabel(labelNumEqFalseBr); // If we are not going to the GOTO, visit the label
+						mv.visitInsn(ICONST_0); // Load False -> 0
+						mv.visitLabel(labelPostNumEq); // Goto the position after loading, ie GOTO location.
+						mv.visitInsn(IOR);
+					}
+					default -> {
+						throw new IllegalStateException("code gen bug in visitExpressionBinary BOOLEAN");
 					}
 				}
 				;

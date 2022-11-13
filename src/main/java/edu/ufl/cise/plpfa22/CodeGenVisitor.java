@@ -328,7 +328,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", equalsSig, false);
 
 						Label labelNumEqFalseBr = new Label();
-						mv.visitJumpInsn(IFNE, labelNumEqFalseBr); // If val != 0, jump ahead to labelNumEqFalseBr (ie if equals method returned true(1))
+						mv.visitJumpInsn(IFNE, labelNumEqFalseBr); // If val != 0, jump ahead to labelNumEqFalseBr (ie
+																	// if equals method returned true(1))
 						mv.visitInsn(ICONST_1); // a != b load True -> 1 (neq)
 						Label labelPostNumEq = new Label(); // If a != b (val==0) we need to skip the next section
 						mv.visitJumpInsn(GOTO, labelPostNumEq); // Skip next section of loading False -> 0
@@ -339,17 +340,19 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					case LT -> {
 						expressionBinary.e1.visit(this, arg);
 						expressionBinary.e0.visit(this, arg);
+						mv.visitInsn(DUP2);
 						String startsWithSig = "(Ljava/lang/String;)Z";
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", startsWithSig, false);
 
-						expressionBinary.e1.visit(this, arg);
-						expressionBinary.e0.visit(this, arg);
+						mv.visitInsn(DUP_X2);
+						mv.visitInsn(POP);
 
 						String equalsSig = "(Ljava/lang/Object;)Z";
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", equalsSig, false);
 
 						Label labelNumEqFalseBr = new Label();
-						mv.visitJumpInsn(IFNE, labelNumEqFalseBr); // If val != 0, jump ahead to labelNumEqFalseBr (ie if equals method returned true(1))
+						mv.visitJumpInsn(IFNE, labelNumEqFalseBr); // If val != 0, jump ahead to labelNumEqFalseBr (ie
+																	// if equals method returned true(1))
 						mv.visitInsn(ICONST_1); // a != b load True -> 1 (neq)
 						Label labelPostNumEq = new Label(); // If a != b (val==0) we need to skip the next section
 						mv.visitJumpInsn(GOTO, labelPostNumEq); // Skip next section of loading False -> 0
@@ -361,17 +364,19 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					case LE -> {
 						expressionBinary.e1.visit(this, arg);
 						expressionBinary.e0.visit(this, arg);
+						mv.visitInsn(DUP2);
 						String startsWithSig = "(Ljava/lang/String;)Z";
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "startsWith", startsWithSig, false);
 
-						expressionBinary.e1.visit(this, arg);
-						expressionBinary.e0.visit(this, arg);
+						mv.visitInsn(DUP_X2);
+						mv.visitInsn(POP);
 
 						String equalsSig = "(Ljava/lang/Object;)Z";
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", equalsSig, false);
 
 						Label labelNumEqFalseBr = new Label();
-						mv.visitJumpInsn(IFEQ, labelNumEqFalseBr); // If val != 0, jump ahead to labelNumEqFalseBr (ie if equals method returned true(1))
+						mv.visitJumpInsn(IFEQ, labelNumEqFalseBr); // If val != 0, jump ahead to labelNumEqFalseBr (ie
+																	// if equals method returned true(1))
 						mv.visitInsn(ICONST_1); // a != b load True -> 1 (neq)
 						Label labelPostNumEq = new Label(); // If a != b (val==0) we need to skip the next section
 						mv.visitJumpInsn(GOTO, labelPostNumEq); // Skip next section of loading False -> 0
@@ -383,17 +388,19 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					case GT -> {
 						expressionBinary.e0.visit(this, arg);
 						expressionBinary.e1.visit(this, arg);
+						mv.visitInsn(DUP2);
 						String endsWithSig = "(Ljava/lang/String;)Z";
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "endsWith", endsWithSig, false);
 
-						expressionBinary.e1.visit(this, arg);
-						expressionBinary.e0.visit(this, arg);
+						mv.visitInsn(DUP_X2);
+						mv.visitInsn(POP);
 
 						String equalsSig = "(Ljava/lang/Object;)Z";
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", equalsSig, false);
 
 						Label labelNumEqFalseBr = new Label();
-						mv.visitJumpInsn(IFNE, labelNumEqFalseBr); // If val != 0, jump ahead to labelNumEqFalseBr (ie if equals method returned true(1))
+						mv.visitJumpInsn(IFNE, labelNumEqFalseBr); // If val != 0, jump ahead to labelNumEqFalseBr (ie
+																	// if equals method returned true(1))
 						mv.visitInsn(ICONST_1); // a != b load True -> 1 (neq)
 						Label labelPostNumEq = new Label(); // If a != b (val==0) we need to skip the next section
 						mv.visitJumpInsn(GOTO, labelPostNumEq); // Skip next section of loading False -> 0
@@ -405,17 +412,19 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 					case GE -> {
 						expressionBinary.e0.visit(this, arg);
 						expressionBinary.e1.visit(this, arg);
+						mv.visitInsn(DUP2);
 						String endsWithSig = "(Ljava/lang/String;)Z";
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "endsWith", endsWithSig, false);
 
-						expressionBinary.e1.visit(this, arg);
-						expressionBinary.e0.visit(this, arg);
+						mv.visitInsn(DUP_X2);
+						mv.visitInsn(POP);
 
 						String equalsSig = "(Ljava/lang/Object;)Z";
 						mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", equalsSig, false);
 
 						Label labelNumEqFalseBr = new Label();
-						mv.visitJumpInsn(IFEQ, labelNumEqFalseBr); // If val != 0, jump ahead to labelNumEqFalseBr (ie if equals method returned true(1))
+						mv.visitJumpInsn(IFEQ, labelNumEqFalseBr); // If val != 0, jump ahead to labelNumEqFalseBr (ie
+																	// if equals method returned true(1))
 						mv.visitInsn(ICONST_1); // a != b load True -> 1 (neq)
 						Label labelPostNumEq = new Label(); // If a != b (val==0) we need to skip the next section
 						mv.visitJumpInsn(GOTO, labelPostNumEq); // Skip next section of loading False -> 0

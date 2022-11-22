@@ -1,6 +1,12 @@
 package edu.ufl.cise.plpfa22;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import edu.ufl.cise.plpfa22.CodeGenUtils.GenClass;
+
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -38,6 +44,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	final String classDesc;
 
 	ClassWriter classWriter;
+	private List<GenClass> classList = new ArrayList<>();
 
 	public CodeGenVisitor(String className, String packageName, String sourceFileName) {
 		super();
@@ -49,25 +56,24 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	}
 
 	@Override
-	public Object visitBlock(Block block, Object arg) throws PLPException { // DONE?
-		MethodVisitor methodVisitor = (MethodVisitor) arg;
-		methodVisitor.visitCode();
+	public Object visitBlock(Block block, Object arg) throws PLPException {
+		ClassWriter classWriter = (ClassWriter) arg;
 		for (ConstDec constDec : block.constDecs) {
 			constDec.visit(this, null);
 		}
 		for (VarDec varDec : block.varDecs) {
-			varDec.visit(this, methodVisitor);
+			varDec.visit(this, classWriter);
 		}
 		for (ProcDec procDec : block.procedureDecs) {
 			procDec.visit(this, null);
 		}
+		MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "run", "()V", null, null);
 		// add instructions from statement to method
-		block.statement.visit(this, arg);
+		block.statement.visit(this, methodVisitor);
 		methodVisitor.visitInsn(RETURN);
 		methodVisitor.visitMaxs(0, 0);
 		methodVisitor.visitEnd();
 		return null;
-
 	}
 
 	@Override
@@ -80,17 +86,34 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		// but you will be able to print it so you can see the instructions. After
 		// fixing,
 		// restore ClassWriter.COMPUTE_FRAMES
-		classWriter.visit(V17, ACC_PUBLIC | ACC_SUPER, fullyQualifiedClassName, null, "java/lang/Object", null);
+		classWriter.visit(V17, ACC_PUBLIC | ACC_SUPER, fullyQualifiedClassName, null, "java/lang/Object", new String[] { "java/lang/Runnable" });
 
 		// get a method visitor for the main method.
-		MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC | ACC_STATIC, "main", "([Ljava/lang/String;)V",
-				null, null);
+		MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
+		methodVisitor.visitCode();
+		methodVisitor.visitVarInsn(ALOAD, 0);
+		methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+		methodVisitor.visitInsn(RETURN);
+		methodVisitor.visitMaxs(0, 0);
+		methodVisitor.visitEnd();
+		
+		methodVisitor = classWriter.visitMethod(ACC_PUBLIC | ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
+		methodVisitor.visitCode();
+		methodVisitor.visitTypeInsn(NEW, fullyQualifiedClassName);
+		methodVisitor.visitInsn(DUP);
+		methodVisitor.visitMethodInsn(INVOKESPECIAL, fullyQualifiedClassName, "<init>", "()V", false);
+		methodVisitor.visitMethodInsn(INVOKEVIRTUAL, fullyQualifiedClassName, "run", "()V", false);
+		methodVisitor.visitInsn(RETURN);
+		methodVisitor.visitMaxs(0, 0);
+		methodVisitor.visitEnd();
 		// visit the block, passing it the methodVisitor
-		program.block.visit(this, methodVisitor);
+		program.block.visit(this, classWriter);
 		// finish up the class
 		classWriter.visitEnd();
 		// return the bytes making up the classfile
-		return classWriter.toByteArray();
+		//return classWriter.toByteArray();
+		classList.add(new GenClass(fullyQualifiedClassName, classWriter.toByteArray()));
+		return classList;
 	}
 
 	@Override
@@ -100,7 +123,25 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		ClassWriter classWriter = (ClassWriter) arg;
+		String varName = varDec.getFirstToken().getText().toString();
+		Type varType = varDec.getType();
+		String type;
+		switch(varType) {
+			case NUMBER -> {
+				type = "I";
+			}
+			case STRING -> {
+				type = "Ljava/lang/String;";
+			}
+			case BOOLEAN -> {
+				type = "Z";
+			}
+			default -> {throw new IllegalStateException("code gen bug in VarDec PROCEDURE");}
+		}
+		FieldVisitor fieldVisitor = classWriter.visitField(0, varName, type, null, null);
+		fieldVisitor.visitEnd();
+		return null;
 	}
 
 	@Override
@@ -479,7 +520,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		return null;
 	}
 
 	@Override

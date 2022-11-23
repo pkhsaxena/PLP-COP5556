@@ -3,14 +3,13 @@ package edu.ufl.cise.plpfa22;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.ufl.cise.plpfa22.CodeGenUtils.GenClass;
-
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
+import edu.ufl.cise.plpfa22.CodeGenUtils.GenClass;
 import edu.ufl.cise.plpfa22.IToken.Kind;
 import edu.ufl.cise.plpfa22.ast.ASTVisitor;
 import edu.ufl.cise.plpfa22.ast.Block;
@@ -59,7 +58,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	public Object visitBlock(Block block, Object arg) throws PLPException {
 		ClassWriter classWriter = (ClassWriter) arg;
 		for (ConstDec constDec : block.constDecs) {
-			constDec.visit(this, null);
+			constDec.visit(this, classWriter);
 		}
 		for (VarDec varDec : block.varDecs) {
 			varDec.visit(this, classWriter);
@@ -69,6 +68,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		}
 		MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "run", "()V", null, null);
 		// add instructions from statement to method
+		methodVisitor.visitCode();
 		block.statement.visit(this, methodVisitor);
 		methodVisitor.visitInsn(RETURN);
 		methodVisitor.visitMaxs(0, 0);
@@ -96,7 +96,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		methodVisitor.visitInsn(RETURN);
 		methodVisitor.visitMaxs(0, 0);
 		methodVisitor.visitEnd();
-		
+
 		methodVisitor = classWriter.visitMethod(ACC_PUBLIC | ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null);
 		methodVisitor.visitCode();
 		methodVisitor.visitTypeInsn(NEW, fullyQualifiedClassName);
@@ -118,27 +118,21 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitStatementAssign(StatementAssign statementAssign, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		MethodVisitor mv = (MethodVisitor) arg;
+		String iden = String.valueOf(statementAssign.ident.getText());
+		String idenType = statementAssign.ident.getDec().getType().getJVMType();
+
+		mv.visitVarInsn(ALOAD, 0);
+		statementAssign.expression.visit(this, arg);
+		mv.visitFieldInsn(PUTFIELD, "edu/ufl/cise/plpfa22/prog", iden, idenType);
+		return null;
 	}
 
 	@Override
 	public Object visitVarDec(VarDec varDec, Object arg) throws PLPException {
 		ClassWriter classWriter = (ClassWriter) arg;
-		String varName = varDec.getFirstToken().getText().toString();
-		Type varType = varDec.getType();
-		String type;
-		switch(varType) {
-			case NUMBER -> {
-				type = "I";
-			}
-			case STRING -> {
-				type = "Ljava/lang/String;";
-			}
-			case BOOLEAN -> {
-				type = "Z";
-			}
-			default -> {throw new IllegalStateException("code gen bug in VarDec PROCEDURE");}
-		}
+		String varName = String.valueOf(varDec.ident.getText());
+		String type = varDec.getType().getJVMType();
 		FieldVisitor fieldVisitor = classWriter.visitField(0, varName, type, null, null);
 		fieldVisitor.visitEnd();
 		return null;
@@ -187,7 +181,20 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitStatementWhile(StatementWhile statementWhile, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		MethodVisitor mv = (MethodVisitor) arg;
+		Label guard = new Label();
+		mv.visitJumpInsn(GOTO, guard);
+
+		Label body = new Label();
+		mv.visitLabel(body);
+		mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+		statementWhile.statement.visit(this, arg);
+
+		mv.visitLabel(guard);
+		mv.visitFrame(Opcodes.F_SAME, 0, null, 0, null);
+		statementWhile.expression.visit(this, arg);
+		mv.visitJumpInsn(IFNE, body);
+		return null;
 	}
 
 	@Override
@@ -489,7 +496,12 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitExpressionIdent(ExpressionIdent expressionIdent, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		MethodVisitor mv = (MethodVisitor) arg;
+		String varName = String.valueOf(expressionIdent.firstToken.getText());
+		String type = expressionIdent.getDec().getType().getJVMType();
+		mv.visitVarInsn(ALOAD, 0);
+		mv.visitFieldInsn(GETFIELD, "edu/ufl/cise/plpfa22/prog", varName, type);
+		return null;
 	}
 
 	@Override
@@ -520,6 +532,11 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
+		ClassWriter classWriter = (ClassWriter) arg;
+		String varName = String.valueOf(constDec.getFirstToken().getText());
+		String type = constDec.getType().getJVMType();
+		FieldVisitor fieldVisitor = classWriter.visitField(ACC_FINAL, varName, type, null, constDec.val);
+		fieldVisitor.visitEnd();
 		return null;
 	}
 

@@ -552,7 +552,15 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		Nest += 1;
+		ScopeStack.push(procDec.getFirstToken().getText().toString());
+		//TODO: DO STUFF
+
+		procDec.block.visit(this, null);
+
+		Nest -= 1;
+		ScopeStack.pop();
+		return null;
 	}
 
 	@Override

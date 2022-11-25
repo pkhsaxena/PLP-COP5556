@@ -555,7 +555,9 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		Nest += 1;
 		ScopeStack.push(procDec.getFirstToken().getText().toString());
 		//TODO: DO STUFF
-
+		ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+		classWriter.visit(V17, ACC_PUBLIC | ACC_SUPER, getFullyQualifiedName(), null, "java/lang/Object",
+				new String[] { "java/lang/Runnable" });
 		procDec.block.visit(this, null);
 
 		Nest -= 1;
@@ -578,4 +580,12 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		throw new UnsupportedOperationException();
 	}
 
+	public String getFullyQualifiedName() {
+		String rString = this.fullyQualifiedClassName;
+		for(int i=0; i<Nest; i++)
+		{
+			rString += '$' + ScopeStack.get(i);
+		}
+		return rString;
+	}
 }

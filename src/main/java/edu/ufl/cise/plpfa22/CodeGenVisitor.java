@@ -129,10 +129,20 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		MethodVisitor mv = (MethodVisitor) arg;
 		String iden = String.valueOf(statementAssign.ident.getText());
 		String idenType = statementAssign.ident.getDec().getType().getJVMType();
+		int IdenNest = statementAssign.ident.getNest();
 
 		mv.visitVarInsn(ALOAD, 0);
+		if(Nest!=IdenNest)
+		{
+			mv.visitFieldInsn(GETFIELD, getFullyQualifiedName(), "this$" + String.valueOf(Nest - 1), "L" + getParentFullyQualifiedName() + ";");
+			if (Math.abs(Nest - IdenNest) > 1)
+			{
+				visitInvokeStatic(mv, IdenNest);
+			}
+		}
 		statementAssign.expression.visit(this, arg);
-		mv.visitFieldInsn(PUTFIELD, "edu/ufl/cise/plpfa22/prog", iden, idenType);
+		mv.visitFieldInsn(PUTFIELD, getFullyQualifiedName(IdenNest), iden, idenType);
+		// mv.visitFieldInsn(PUTFIELD, "edu/ufl/cise/plpfa22/prog", iden, idenType);
 		return null;
 	}
 
@@ -522,7 +532,15 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			}
 		} else {
 			mv.visitVarInsn(ALOAD, 0);
-			mv.visitFieldInsn(GETFIELD, "edu/ufl/cise/plpfa22/prog", varName, type);
+			if(Nest != expressionIdent.getNest())
+			{
+				mv.visitFieldInsn(GETFIELD, getFullyQualifiedName(), "this$" + String.valueOf(Nest - 1), "L" + getFullyQualifiedName(expressionIdent.getNest()) +";");
+				if (Math.abs(Nest - expressionIdent.getNest()) > 1)
+				{
+					visitInvokeStatic(mv, expressionIdent.getNest());
+				}
+			}
+			mv.visitFieldInsn(GETFIELD, getFullyQualifiedName(expressionIdent.getNest()), varName, type);
 		}
 		return null;
 	}
@@ -620,6 +638,14 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		}
 		return rString;
 	}
+	
+	public String getFullyQualifiedName(int Nest) {
+		String rString = this.fullyQualifiedClassName;
+		for (int i = 0; i < Nest; i++) {
+			rString += '$' + ScopeStack.get(i);
+		}
+		return rString;
+	}
 
 	public void visitParentsAndSelf(ClassWriter classWriter) {
 		String rString = this.fullyQualifiedClassName;
@@ -629,11 +655,27 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		}
 	}
 
+	public String getParentFullyQualifiedName(int Nest) {
+		String rString = this.fullyQualifiedClassName;
+		for (int i = 0; i < Nest - 1; i++) {
+			rString += '$' + ScopeStack.get(i);
+		}
+		return rString;
+	}
+
 	public String getParentFullyQualifiedName() {
 		String rString = this.fullyQualifiedClassName;
 		for (int i = 0; i < Nest - 1; i++) {
 			rString += '$' + ScopeStack.get(i);
 		}
 		return rString;
+	}
+
+	public void visitInvokeStatic(MethodVisitor mv, int VarNest)
+	{
+		for(int i = Nest-1; i > VarNest; i--)
+		{
+			mv.visitMethodInsn(INVOKESTATIC, getFullyQualifiedName(i), "access$0", "(L"+getFullyQualifiedName(i)+";)L"+getParentFullyQualifiedName(i)+";", false);
+		}
 	}
 }

@@ -611,6 +611,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		methodVisitor.visitInsn(ARETURN);
 		methodVisitor.visitMaxs(0, 0);
 		methodVisitor.visitEnd();
+		classWriter.visitEnd();
+		classList.add(new GenClass(fullyQualifiedClassName, classWriter.toByteArray()));
 		Nest -= 1;
 		ScopeStack.pop();
 		return null;

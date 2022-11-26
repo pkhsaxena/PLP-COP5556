@@ -47,6 +47,9 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	private List<GenClass> classList = new ArrayList<>();
 	int Nest;
 	Stack<String> ScopeStack;
+	SymbolTable symbolTable;
+	int ScopeNumber;
+	Stack<Integer> ScopeNumberStack;
 
 	public CodeGenVisitor(String className, String packageName, String sourceFileName) {
 		super();
@@ -57,6 +60,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		this.classDesc = "L" + this.fullyQualifiedClassName + ';';
 		Nest = 0;
 		ScopeStack = new Stack<>();
+		symbolTable = ScopeVisitor.symbolTable;
 	}
 
 	@Override
@@ -69,8 +73,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			varDec.visit(this, classWriter);
 		}
 		for (ProcDec procDec : block.procedureDecs) {
-			classWriter.visitInnerClass(getFullyQualifiedName() + '$' + procDec.ident.getText().toString(),
-					this.fullyQualifiedClassName, procDec.ident.getText().toString(), 0);
+			classWriter.visitInnerClass(getFullyQualifiedName() + '$' + new String(procDec.ident.getText().toString()),
+					this.fullyQualifiedClassName, new String(procDec.ident.getText().toString()), 0);
 			procDec.visit(this, null);
 		}
 		MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "run", "()V", null, null);
@@ -158,7 +162,19 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	@Override
 	public Object visitStatementCall(StatementCall statementCall, Object arg) throws PLPException {
-		throw new UnsupportedOperationException();
+		MethodVisitor methodVisitor = (MethodVisitor) arg;
+		String procName = statementCall.ident.getDec().getName();
+		methodVisitor.visitTypeInsn(NEW, fullyQualifiedClassName+procName);
+		methodVisitor.visitInsn(DUP);
+		methodVisitor.visitVarInsn(ALOAD, 0);
+		if(Nest!=statementCall.ident.getNest())
+		{
+			methodVisitor.visitFieldInsn(GETFIELD, getFullyQualifiedName(), "this$" + String.valueOf(Nest - 1), "L"+ getParentFullyQualifiedName() +";");
+			visitInvokeStatic(methodVisitor, statementCall.ident.getNest());
+		}
+		methodVisitor.visitMethodInsn(INVOKESPECIAL, fullyQualifiedClassName+procName, "<init>", "(L"+ getFullyQualifiedName(statementCall.ident.getNest())+";)V", false);
+		methodVisitor.visitMethodInsn(INVOKEVIRTUAL, fullyQualifiedClassName+procName, "run", "()V", false);
+		return null;
 	}
 
 	@Override
@@ -573,7 +589,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	@Override
 	public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
 		Nest += 1;
-		ScopeStack.push(procDec.getFirstToken().getText().toString());
+		ScopeStack.push(new String (procDec.getFirstToken().getText().toString()));
 		ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		classWriter.visit(V17, ACC_PUBLIC | ACC_SUPER, getFullyQualifiedName(), null, "java/lang/Object",
 				new String[] { "java/lang/Runnable" });
@@ -598,11 +614,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		methodVisitor.visitMaxs(0, 0);
 		methodVisitor.visitEnd();
 
-		methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "run", "()V", null, null);
-		methodVisitor.visitCode();
-
-
-		procDec.block.visit(this, null);
+		procDec.block.visit(this, classWriter);
 
 		methodVisitor = classWriter.visitMethod(ACC_STATIC | ACC_SYNTHETIC, "access$0", "(L"+ getFullyQualifiedName() +";)L"+getParentFullyQualifiedName() +";", null, null);
 		methodVisitor.visitCode();
@@ -612,7 +624,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		methodVisitor.visitMaxs(0, 0);
 		methodVisitor.visitEnd();
 		classWriter.visitEnd();
-		classList.add(new GenClass(fullyQualifiedClassName, classWriter.toByteArray()));
+		classList.add(new GenClass(procDec.getName(), classWriter.toByteArray()));
 		Nest -= 1;
 		ScopeStack.pop();
 		return null;

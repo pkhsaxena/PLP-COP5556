@@ -69,6 +69,8 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			varDec.visit(this, classWriter);
 		}
 		for (ProcDec procDec : block.procedureDecs) {
+			classWriter.visitInnerClass(getFullyQualifiedName() + '$' + procDec.ident.getText().toString(),
+					this.fullyQualifiedClassName, procDec.ident.getText().toString(), 0);
 			procDec.visit(this, null);
 		}
 		MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "run", "()V", null, null);
@@ -554,12 +556,43 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
 		Nest += 1;
 		ScopeStack.push(procDec.getFirstToken().getText().toString());
-		//TODO: DO STUFF
 		ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
 		classWriter.visit(V17, ACC_PUBLIC | ACC_SUPER, getFullyQualifiedName(), null, "java/lang/Object",
 				new String[] { "java/lang/Runnable" });
+
+		classWriter.visitNestHost(this.fullyQualifiedClassName);
+		visitParentsAndSelf(classWriter);
+		FieldVisitor fieldVisitor = classWriter.visitField(ACC_FINAL | ACC_SYNTHETIC,
+				"this$" + String.valueOf(Nest - 1), "L" + getParentFullyQualifiedName() + ';', null, null);
+		fieldVisitor.visitEnd();
+
+		MethodVisitor methodVisitor = classWriter.visitMethod(0, "<init>", "(L" + getParentFullyQualifiedName() + ";)V",
+				null, null);
+		methodVisitor.visitCode();
+
+		methodVisitor.visitVarInsn(ALOAD, 0);
+		methodVisitor.visitVarInsn(ALOAD, 1);
+		methodVisitor.visitFieldInsn(PUTFIELD, getFullyQualifiedName(), "this$" + String.valueOf(Nest - 1),
+				"L" + getParentFullyQualifiedName() + ";");
+		methodVisitor.visitVarInsn(ALOAD, 0);
+		methodVisitor.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
+		methodVisitor.visitInsn(RETURN);
+		methodVisitor.visitMaxs(0, 0);
+		methodVisitor.visitEnd();
+
+		methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "run", "()V", null, null);
+		methodVisitor.visitCode();
+
+
 		procDec.block.visit(this, null);
 
+		methodVisitor = classWriter.visitMethod(ACC_STATIC | ACC_SYNTHETIC, "access$0", "(L"+ getFullyQualifiedName() +";)L"+getParentFullyQualifiedName() +";", null, null);
+		methodVisitor.visitCode();
+		methodVisitor.visitVarInsn(ALOAD, 0);
+		methodVisitor.visitFieldInsn(GETFIELD, getFullyQualifiedName(), "this$" + String.valueOf(Nest - 1), "L" + getParentFullyQualifiedName()+";");
+		methodVisitor.visitInsn(ARETURN);
+		methodVisitor.visitMaxs(0, 0);
+		methodVisitor.visitEnd();
 		Nest -= 1;
 		ScopeStack.pop();
 		return null;
@@ -582,8 +615,23 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 
 	public String getFullyQualifiedName() {
 		String rString = this.fullyQualifiedClassName;
-		for(int i=0; i<Nest; i++)
-		{
+		for (int i = 0; i < Nest; i++) {
+			rString += '$' + ScopeStack.get(i);
+		}
+		return rString;
+	}
+
+	public void visitParentsAndSelf(ClassWriter classWriter) {
+		String rString = this.fullyQualifiedClassName;
+		for (int i = 0; i < Nest; i++) {
+			rString += '$' + ScopeStack.get(i);
+			classWriter.visitInnerClass(rString, this.fullyQualifiedClassName, ScopeStack.get(i), 0);
+		}
+	}
+
+	public String getParentFullyQualifiedName() {
+		String rString = this.fullyQualifiedClassName;
+		for (int i = 0; i < Nest - 1; i++) {
 			rString += '$' + ScopeStack.get(i);
 		}
 		return rString;

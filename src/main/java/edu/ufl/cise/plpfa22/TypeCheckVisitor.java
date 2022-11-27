@@ -35,10 +35,10 @@ public class TypeCheckVisitor implements ASTVisitor {
 	int ScopeNumber;
 	int Nest;
 	Stack<Integer> ScopeStack;
-	SymbolTable symbolTable;
+//	SymbolTable symbolTable;
 
 	public TypeCheckVisitor() {
-		symbolTable = ScopeVisitor.symbolTable;
+//		symbolTable = ScopeVisitor.symbolTable;
 		ScopeNumber = 0;
 		Nest = 0;
 		ScopeStack = new Stack<>();
@@ -336,13 +336,11 @@ public class TypeCheckVisitor implements ASTVisitor {
 					flip();
 				}
 			}
-			if (expressionBinary.e0 instanceof ExpressionIdent && symbolTable
-					.get(new String(expressionBinary.e0.firstToken.getText()), ScopeStack) instanceof Declaration) {
-				symbolTable.get(new String(expressionBinary.e0.firstToken.getText()), ScopeStack).setType(e0_Type);
+			if (expressionBinary.e0 instanceof ExpressionIdent) {
+				((ExpressionIdent) expressionBinary.e0).getDec().setType(e0_Type);
 			}
-			if (expressionBinary.e1 instanceof ExpressionIdent && symbolTable
-					.get(new String(expressionBinary.e0.firstToken.getText()), ScopeStack) instanceof Declaration) {
-				symbolTable.get(new String(expressionBinary.e1.firstToken.getText()), ScopeStack).setType(e1_Type);
+			if (expressionBinary.e1 instanceof ExpressionIdent) {
+				((ExpressionIdent) expressionBinary.e1).getDec().setType(e1_Type);
 			}
 		} else if (arg.equals(1)) {
 			if (expressionBinary.getType() == null) {
@@ -402,17 +400,16 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitProcedure(ProcDec procDec, Object arg) throws PLPException {
-		Declaration dec = symbolTable.get(new String(procDec.ident.getText()), ScopeStack);
 		if (arg.equals(0)) {
-			if (dec.getType() == null) {
-				dec.setType(Type.PROCEDURE);
+			if (procDec.getType() == null) {
+				procDec.setType(Type.PROCEDURE);
 				flip();
-			} else if (dec.getType() != Type.PROCEDURE) {
-				error(Type.PROCEDURE, dec.getType(), dec.getSourceLocation());
+			} else if (procDec.getType() != Type.PROCEDURE) {
+				error(Type.PROCEDURE, procDec.getType(), procDec.getSourceLocation());
 			}
 		} else if (arg.equals(1)) {
-			if (dec.getType() == null) {
-				throw new TypeCheckException("No type found", dec.getSourceLocation());
+			if (procDec.getType() == null) {
+				throw new TypeCheckException("No type found", procDec.getSourceLocation());
 			}
 		}
 		ScopeNumber += 1;
@@ -426,22 +423,21 @@ public class TypeCheckVisitor implements ASTVisitor {
 
 	@Override
 	public Object visitConstDec(ConstDec constDec, Object arg) throws PLPException {
-		Declaration dec = symbolTable.get(new String(constDec.ident.getText()), ScopeStack);
 		if (arg.equals(0)) {
-			if (dec.getType() == null) {
+			if (constDec.getType() == null) {
 				Object val = constDec.val;
 				if (val instanceof Integer) {
-					dec.setType(Type.NUMBER);
+					constDec.setType(Type.NUMBER);
 				} else if (val instanceof String) {
-					dec.setType(Type.STRING);
+					constDec.setType(Type.STRING);
 				} else if (val instanceof Boolean) {
-					dec.setType(Type.BOOLEAN);
+					constDec.setType(Type.BOOLEAN);
 				}
 				flip();
 			}
 		} else if (arg.equals(1)) {
-			if (dec.getType() == null) {
-				throw new TypeCheckException("No type found", dec.getSourceLocation());
+			if (constDec.getType() == null) {
+				throw new TypeCheckException("No type found", constDec.getSourceLocation());
 			}
 		}
 		return null;

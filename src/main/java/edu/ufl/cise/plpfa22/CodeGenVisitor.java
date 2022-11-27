@@ -539,17 +539,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		String type = expressionIdent.getDec().getType().getJVMType();
 		if (expressionIdent.getDec() instanceof ConstDec) {
 			ConstDec Dec = (ConstDec) expressionIdent.getDec();
-			if (type == "I") {
-				mv.visitIntInsn(BIPUSH, (int) Dec.val);
-			} else if (type == "Z") {
-				if ((boolean) Dec.val == true) {
-					mv.visitInsn(ICONST_1);
-				} else {
-					mv.visitInsn(ICONST_0);
-				}
-			} else if (type == "Ljava/lang/String;") {
-				mv.visitLdcInsn((String) Dec.val);
-			}
+			mv.visitLdcInsn(Dec.val);
 		} else {
 			mv.visitVarInsn(ALOAD, 0);
 			System.out.println("**************");
@@ -573,7 +563,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	@Override
 	public Object visitExpressionNumLit(ExpressionNumLit expressionNumLit, Object arg) throws PLPException { // Done
 		MethodVisitor mv = (MethodVisitor) arg;
-		mv.visitIntInsn(BIPUSH, expressionNumLit.getFirstToken().getIntValue());
+		mv.visitLdcInsn(expressionNumLit.getFirstToken().getIntValue());
 		return null;
 	}
 
@@ -661,7 +651,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		}
 		return rString;
 	}
-	
+
 	public String getFullyQualifiedName(int Nest) {
 		String rString = this.fullyQualifiedClassName;
 		for (int i = 0; i < Nest; i++) {

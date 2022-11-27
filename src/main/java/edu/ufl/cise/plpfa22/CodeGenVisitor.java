@@ -155,9 +155,12 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 	public Object visitVarDec(VarDec varDec, Object arg) throws PLPException { // Done
 		ClassWriter classWriter = (ClassWriter) arg;
 		String varName = String.valueOf(varDec.ident.getText());
-		String type = varDec.getType().getJVMType();
-		FieldVisitor fieldVisitor = classWriter.visitField(0, varName, type, null, null);
-		fieldVisitor.visitEnd();
+		if(varDec.getType() != null)
+		{
+			String type = varDec.getType().getJVMType();
+			FieldVisitor fieldVisitor = classWriter.visitField(0, varName, type, null, null);
+			fieldVisitor.visitEnd();
+		}
 		return null;
 	}
 

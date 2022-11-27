@@ -168,12 +168,12 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		methodVisitor.visitTypeInsn(NEW, fullyQualifiedClassName+procName);
 		methodVisitor.visitInsn(DUP);
 		methodVisitor.visitVarInsn(ALOAD, 0);
-		if(Nest!=statementCall.ident.getNest())
+		if(Nest!=statementCall.ident.getDec().getNest())
 		{
 			methodVisitor.visitFieldInsn(GETFIELD, getFullyQualifiedName(), "this$" + String.valueOf(Nest - 1), "L"+ getParentFullyQualifiedName() +";");
-			visitInvokeStatic(methodVisitor, statementCall.ident.getNest());
+			visitInvokeStatic(methodVisitor, statementCall.ident.getDec().getNest());
 		}
-		methodVisitor.visitMethodInsn(INVOKESPECIAL, fullyQualifiedClassName+procName, "<init>", "(L"+ getFullyQualifiedName(statementCall.ident.getNest())+";)V", false);
+		methodVisitor.visitMethodInsn(INVOKESPECIAL, fullyQualifiedClassName+procName, "<init>", "(L"+ getFullyQualifiedName(statementCall.ident.getDec().getNest())+";)V", false);
 		methodVisitor.visitMethodInsn(INVOKEVIRTUAL, fullyQualifiedClassName+procName, "run", "()V", false);
 		return null;
 	}

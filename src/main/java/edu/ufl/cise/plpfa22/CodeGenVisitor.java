@@ -134,7 +134,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 		MethodVisitor mv = (MethodVisitor) arg;
 		String iden = String.valueOf(statementAssign.ident.getText());
 		String idenType = statementAssign.ident.getDec().getType().getJVMType();
-		int IdenNest = statementAssign.ident.getNest();
+		int IdenNest = statementAssign.ident.getDec().getNest();
 
 		mv.visitVarInsn(ALOAD, 0);
 		if(Nest!=IdenNest)

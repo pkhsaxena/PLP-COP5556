@@ -10,9 +10,11 @@ import edu.ufl.cise.plpfa22.ast.Types.Type;
 public abstract class Declaration extends ASTNode {
 
 	Type type;
+	String name;
 
 	public Declaration(IToken firstToken) {
 		super(firstToken);
+		name = null;
 	}
 
 	public Type getType() {
@@ -31,6 +33,16 @@ public abstract class Declaration extends ASTNode {
 
 	public int getNest() {
 		return nest;
+	}
+
+	public void setName(String name)
+	{
+		this.name = name;
+	}
+
+	public String getName()
+	{
+		return this.name;
 	}
 
 }

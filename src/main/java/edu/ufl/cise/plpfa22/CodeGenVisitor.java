@@ -553,7 +553,7 @@ public class CodeGenVisitor implements ASTVisitor, Opcodes {
 			System.out.println(Nest + " , " +  expressionIdent.getDec().getNest());
 			if(Nest != expressionIdent.getDec().getNest())
 			{
-				mv.visitFieldInsn(GETFIELD, getFullyQualifiedName(), "this$" + String.valueOf(Nest - 1), "L" + getFullyQualifiedName(expressionIdent.getDec().getNest()) +";");
+				mv.visitFieldInsn(GETFIELD, getFullyQualifiedName(), "this$" + String.valueOf(Nest - 1), "L" + getFullyQualifiedName(Nest-1) +";");
 				System.out.println("GETFIELD, " + getFullyQualifiedName()+ ", this$" + String.valueOf(Nest - 1) + ", L" + getFullyQualifiedName(expressionIdent.getDec().getNest()) + ";");
 				if (Math.abs(Nest - expressionIdent.getDec().getNest()) > 1)
 				{

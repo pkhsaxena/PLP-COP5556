@@ -30,12 +30,14 @@ public class ScopeVisitor implements ASTVisitor {
 	int Nest;
 	Stack<Integer> ScopeStack;
 	static SymbolTable symbolTable;
+	Stack<String> NameStack;
 
 	public ScopeVisitor() {
 		ScopeNumber = 0;
 		Nest = 0;
 		ScopeStack = new Stack<>();
 		symbolTable = new SymbolTable();
+		NameStack = new Stack<>();
 	}
 
 	@Override
@@ -171,9 +173,20 @@ public class ScopeVisitor implements ASTVisitor {
 		ScopeNumber += 1;
 		Nest += 1;
 		ScopeStack.push(ScopeNumber);
+		NameStack.push(new String(procDec.ident.getText()));
+		if(procDec.getName() == null)
+		{
+			String procName = "";
+			for(int i=0; i<Nest; i++)
+			{
+				procName += "$" + NameStack.get(i);
+			}
+			procDec.setName(procName);
+		}
 		procDec.block.visit(this, arg);
 		Nest -= 1;
 		ScopeStack.pop();
+		NameStack.pop();
 		return null;
 	}
 

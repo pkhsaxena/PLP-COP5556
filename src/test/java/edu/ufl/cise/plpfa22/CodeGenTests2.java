@@ -509,7 +509,6 @@ public class CodeGenTests2 {
 		assertEquals(expected, outContent.toString());
 		System.setOut(originalOut);
 	    System.setErr(originalErr);
-		loadClassesAndRunMain(classes, className);
 	}
 
 
@@ -529,7 +528,18 @@ public class CodeGenTests2 {
 		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
 		Object[] args = new Object[1];
 		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+	    System.setErr(new PrintStream(errContent));
+		String expected = """
+				33
+				HELLO
+				false
+				""";
+
 		loadClassesAndRunMain(classes, className);
+		assertEquals(expected, outContent.toString());
+		System.setOut(originalOut);
+	    System.setErr(originalErr);
 	}
 
 	@DisplayName("template")
@@ -563,7 +573,16 @@ public class CodeGenTests2 {
 		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
 		Object[] args = new Object[1];
 		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+	    System.setErr(new PrintStream(errContent));
+		String expected = """
+				3
+				""";
+
 		loadClassesAndRunMain(classes, className);
+		assertEquals(expected, outContent.toString());
+		System.setOut(originalOut);
+	    System.setErr(originalErr);
 	}
 
 
@@ -586,7 +605,18 @@ public class CodeGenTests2 {
 		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
 		Object[] args = new Object[1];
 		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+	    System.setErr(new PrintStream(errContent));
+		String expected = """
+				22
+				HELLO
+				false
+				""";
+
 		loadClassesAndRunMain(classes, className);
+		assertEquals(expected, outContent.toString());
+		System.setOut(originalOut);
+	    System.setErr(originalErr);
 	}
 
 
@@ -610,7 +640,18 @@ public class CodeGenTests2 {
 		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
 		Object[] args = new Object[1];
 		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+	    System.setErr(new PrintStream(errContent));
+		String expected = """
+				42
+				hello
+				true
+				""";
+
 		loadClassesAndRunMain(classes, className);
+		assertEquals(expected, outContent.toString());
+		System.setOut(originalOut);
+	    System.setErr(originalErr);
 	}
 
 	@DisplayName("var2")
@@ -635,7 +676,18 @@ public class CodeGenTests2 {
 		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
 		Object[] args = new Object[1];
 		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+	    System.setErr(new PrintStream(errContent));
+		String expected = """
+				42
+				hello
+				true
+				""";
+
 		loadClassesAndRunMain(classes, className);
+		assertEquals(expected, outContent.toString());
+		System.setOut(originalOut);
+	    System.setErr(originalErr);
 	}
 
 	@DisplayName("var3")
@@ -662,7 +714,18 @@ public class CodeGenTests2 {
 		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
 		Object[] args = new Object[1];
 		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+	    System.setErr(new PrintStream(errContent));
+		String expected = """
+				42
+				hello
+				true
+				""";
+
 		loadClassesAndRunMain(classes, className);
+		assertEquals(expected, outContent.toString());
+		System.setOut(originalOut);
+	    System.setErr(originalErr);
 	}
 
 
@@ -710,7 +773,23 @@ public class CodeGenTests2 {
 		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
 		Object[] args = new Object[1];
 		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+	    System.setErr(new PrintStream(errContent));
+		String expected = """
+				in main calling p, a=1
+				in p
+				calling q
+				in q, calling q1
+				in q1 calling r
+				 in r, calling p
+				in p
+				terminating back in main
+				""";
+
 		loadClassesAndRunMain(classes, className);
+		assertEquals(expected, outContent.toString());
+		System.setOut(originalOut);
+	    System.setErr(originalErr);
 	}
 
 
@@ -745,7 +824,29 @@ public class CodeGenTests2 {
 		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
 		Object[] args = new Object[1];
 		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+	    System.setErr(new PrintStream(errContent));
+		String expected = """
+				in p, a=
+				6
+				in q, a=
+				5
+				in p, a=
+				4
+				in q, a=
+				3
+				in p, a=
+				2
+				in q, a=
+				1
+				in p, a=
+				0
+				""";
+
 		loadClassesAndRunMain(classes, className);
+		assertEquals(expected, outContent.toString());
+		System.setOut(originalOut);
+	    System.setErr(originalErr);
 	}
 
 	@DisplayName("rec1")
@@ -772,7 +873,29 @@ public class CodeGenTests2 {
 		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
 		Object[] args = new Object[1];
 		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+	    System.setErr(new PrintStream(errContent));
+		String expected = """
+				in p, a=
+				6
+				in p, a=
+				5
+				in p, a=
+				4
+				in p, a=
+				3
+				in p, a=
+				2
+				in p, a=
+				1
+				in p, a=
+				0
+				""";
+
 		loadClassesAndRunMain(classes, className);
+		assertEquals(expected, outContent.toString());
+		System.setOut(originalOut);
+	    System.setErr(originalErr);
 	}
 
 	@DisplayName("while0")
@@ -793,7 +916,22 @@ public class CodeGenTests2 {
 		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
 		Object[] args = new Object[1];
 		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+	    System.setErr(new PrintStream(errContent));
+		String expected = """
+				6
+				5
+				4
+				3
+				2
+				1
+				0
+				""";
+
 		loadClassesAndRunMain(classes, className);
+		assertEquals(expected, outContent.toString());
+		System.setOut(originalOut);
+	    System.setErr(originalErr);
 	}
 
 	@DisplayName("procWhile")
@@ -827,7 +965,22 @@ public class CodeGenTests2 {
 		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
 		Object[] args = new Object[1];
 		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+	    System.setErr(new PrintStream(errContent));
+		String expected = """
+				6
+				5
+				4
+				3
+				2
+				1
+				0
+				""";
+
 		loadClassesAndRunMain(classes, className);
+		assertEquals(expected, outContent.toString());
+		System.setOut(originalOut);
+	    System.setErr(originalErr);
 	}
 
 	@DisplayName("proc")
@@ -873,7 +1026,33 @@ public class CodeGenTests2 {
 		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
 		Object[] args = new Object[1];
 		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+	    System.setErr(new PrintStream(errContent));
+		String expected = """
+				in main calling p, a=5
+				in p
+				calling q
+				4
+				in p
+				calling q
+				3
+				in p
+				calling q
+				2
+				in p
+				calling q
+				1
+				in p
+				calling q
+				0
+				in p
+				terminating back in main
+				""";
+
 		loadClassesAndRunMain(classes, className);
+		assertEquals(expected, outContent.toString());
+		System.setOut(originalOut);
+	    System.setErr(originalErr);
 	}
 
 	@DisplayName("procConst")
@@ -909,7 +1088,19 @@ public class CodeGenTests2 {
 		List<GenClass> classes = compile(input, shortClassName, JVMpackageName);
 		Object[] args = new Object[1];
 		String className = "edu.ufl.cise.plpfa22.prog";
+		System.setOut(new PrintStream(outContent));
+	    System.setErr(new PrintStream(errContent));
+		String expected = """
+				6
+				4
+				2
+				0
+				""";
+
 		loadClassesAndRunMain(classes, className);
+		assertEquals(expected, outContent.toString());
+		System.setOut(originalOut);
+	    System.setErr(originalErr);
 	}
 
 
